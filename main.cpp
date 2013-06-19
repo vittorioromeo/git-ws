@@ -12,13 +12,32 @@ const string flagPrefixShort{"-"};
 const string flagPrefixLong{"--"};
 
 template<typename T> struct CLValueParser;
-template<> struct CLValueParser<int> { inline static int parse(const string& mString) { return stoi(mString); } };
-template<> struct CLValueParser<string> { inline static string parse(const string& mString) { return mString; } };
-
-struct CLArgBase
+template<> struct CLValueParser<int>
 {
-	virtual ~CLArgBase() { }
-	virtual void setValue(const string& mString) = 0;
+	inline static int parse(const string& mString)
+	{
+		try { return stoi(mString); }
+		catch(...) { throw runtime_error("Cannot convert '" + mString + "' to int"); }
+	}
+};
+template<> struct CLValueParser<string>
+{
+	inline static string parse(const string& mString) { return mString; }
+};
+
+class CLArgBase
+{
+	private:
+		string description;
+
+	public:
+		CLArgBase(const string& mDescription) : description{mDescription} { }
+
+		virtual ~CLArgBase() { }
+		virtual void setValue(const string& mString) = 0;
+
+		const string& getDescription() { return description; }
+		string getArgString() { return "(" + description + ")"; }
 };
 template<typename T> class CLArg : public CLArgBase
 {
@@ -26,6 +45,8 @@ template<typename T> class CLArg : public CLArgBase
 		T value;
 
 	public:
+		CLArg(const string& mDescription) : CLArgBase{mDescription} { }
+
 		T getValue() { return value; }
 		void setValue(const string& mValue) override { value = CLValueParser<T>::parse(mValue); }
 };
@@ -38,9 +59,16 @@ class CLFlag
 
 	public:
 		CLFlag(const string& mShortName, const string& mLongName) : shortName{mShortName}, longName{mLongName} { }
+
 		void setActive(bool mActive) { active = mActive; }
 		bool isActive() { return active; }
 		bool hasName(const string& mName) { return mName == flagPrefixShort + shortName || mName == flagPrefixLong + longName; }
+
+		const string& getShortName() { return shortName; }
+		const string& getLongName() { return longName; }
+		string getShortNameWithPrefix() { return flagPrefixShort + shortName; }
+		string getLongNameWithPrefix() { return flagPrefixLong + longName; }
+		string getFlagString() { return "[" + getShortNameWithPrefix() + " || " + getLongNameWithPrefix() + "]"; }
 };
 
 class CLCommand
@@ -51,10 +79,10 @@ class CLCommand
 		vector<CLFlag*> flags;
 		function<void()> func;
 
-		CLFlag* findFlag(const string& mName)
+		CLFlag& findFlag(const string& mName)
 		{
-			for(const auto& f : flags) if(f->hasName(mName)) return f;
-			throw runtime_error("No flag with name <" + mName + ">");
+			for(const auto& f : flags) if(f->hasName(mName)) return *f;
+			throw runtime_error("No flag with name [" + mName + "] in command " + getNamesString());
 		}
 
 	public:
@@ -65,7 +93,7 @@ class CLCommand
 			for(const auto& f : flags) delete f;
 		}
 
-		template<typename T> CLArg<T>& createArg() { auto result(new CLArg<T>); args.push_back(result); return *result; }
+		template<typename T> CLArg<T>& createArg(const string& mDescription) { auto result(new CLArg<T>(mDescription)); args.push_back(result); return *result; }
 		void setArgValue(unsigned int mIndex, const string& mValue) { args[mIndex]->setValue(mValue); }
 		template<typename T> T getArgValue(unsigned int mIndex) { return static_cast<CLArg<T>*>(args[mIndex])->getValue(); }
 		unsigned int getArgCount() { return args.size(); }
@@ -73,11 +101,47 @@ class CLCommand
 		CLFlag& createFlag(const string& mShortName, const string& mLongName) { auto result(new CLFlag{mShortName, mLongName}); flags.push_back(result); return *result; }
 		bool isFlagActive(unsigned int mIndex) { return flags[mIndex]->isActive(); }
 		unsigned int getFlagCount() { return flags.size(); }
-		void activateFlag(const string& mName) { findFlag(mName)->setActive(true); }
+		void activateFlag(const string& mName) { findFlag(mName).setActive(true); }
 
 		bool hasName(const string& mName) { return contains(names, mName); }
 		void execute() { func(); }
 		void setFunc(function<void()> mFunc) { func = mFunc; }
+
+		const vector<string>& getNames() { return names; }
+		const vector<CLArgBase*>& getArgs() { return args; }
+		const vector<CLFlag*>& getFlags() { return flags; }
+
+		string getNamesString()
+		{
+			string result{"<"};
+			for(unsigned int i{0}; i < names.size(); ++i)
+			{
+				result.append(names[i]);
+				if(i < names.size() - 1) result.append(" || ");
+			}
+			result.append(">");
+			return result;
+		}
+		string getArgsString()
+		{
+			string result;
+			for(unsigned int i{0}; i < args.size(); ++i)
+			{
+				result.append(args[i]->getArgString());
+				if(i < args.size() - 1) result.append(" ");
+			}
+			return result;
+		}
+		string getFlagsString()
+		{
+			string result;
+			for(unsigned int i{0}; i < flags.size(); ++i)
+			{
+				result.append(flags[i]->getFlagString());
+				if(i < flags.size() - 1) result.append(" ");
+			}
+			return result;
+		}
 };
 
 class CLMain
@@ -85,71 +149,78 @@ class CLMain
 	private:
 		vector<CLCommand*> commands;
 
-		CLCommand* findCommand(const string& mName)
+	public:
+		CLCommand& findCommand(const string& mName)
 		{
-			for(const auto& c : commands) if(c->hasName(mName)) return c;
+			for(const auto& c : commands) if(c->hasName(mName)) return *c;
 			throw runtime_error("No command with name <" + mName + ">");
 		}
 
-	public:
-		CLCommand& createCommand(initializer_list<string> mNames) { auto result(new CLCommand{mNames}); commands.push_back(result); return *result; }
+		CLCommand& create(initializer_list<string> mNames) { auto result(new CLCommand{mNames}); commands.push_back(result); return *result; }
 
 		void parseCommandLine(const vector<string>& mArgs)
 		{
 			const string& cmdName{mArgs[0]};
-			CLCommand* cmd;
-
-			try { cmd = findCommand(cmdName); }
-			catch(runtime_error mException) { log(mException.what()); return; }
+			CLCommand& cmd{findCommand(cmdName)};
 
 			vector<string> cArgs, cFlags;
 			for(unsigned int i{1}; i < mArgs.size(); ++i)
 			{
 				const string& s{mArgs[i]};
-				if(startsWith(s, flagPrefixShort) || startsWith(s, flagPrefixLong)) cFlags.push_back(s);
-				else cArgs.push_back(s);
+				(startsWith(s, flagPrefixShort) || startsWith(s, flagPrefixLong)) ? cFlags.push_back(s) : cArgs.push_back(s);
 			}
 
-			unsigned int argCount{cmd->getArgCount()};
-			if(cArgs.size() != argCount) { log("Incorrect number of arguments for command <" + cmdName + ">, correct number is <" + toStr(argCount) + ">", "CLMain::parseCommandLine"); return; }
+			if(cArgs.size() != cmd.getArgCount()) throw runtime_error("Incorrect number of arguments for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
 
-			log("Setting arguments values of command <" + cmdName + ">", "CLMain::parseCommandLine");
-			for(unsigned int i{0}; i < cArgs.size(); ++i)
-			{
-				try { cmd->setArgValue(i, cArgs[i]); }
-				catch(...) { log("Error setting argument number <" + toStr(i) + "> for command <" + cmdName + ">", "CLMain::parseCommandLine"); return; }
-			}
-
-			for(const auto& f : cFlags)
-			{
-				try { cmd->activateFlag(f); }
-				catch(runtime_error mException) { log(mException.what()); return; }
-			}
-
-			log("Executing <" + cmdName + ">", "CLMain::parseCommandLine");
-			cmd->execute();
+			for(unsigned int i{0}; i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
+			for(const auto& f : cFlags) cmd.activateFlag(f);
+			cmd.execute();
 		}
 };
 
+CLMain m;
+
+void initHelp()
+{
+	auto& helpCommand(m.create({"?", "help"}));
+	auto& argCommandName(helpCommand.createArg<string>("command name"));
+	helpCommand.setFunc([&]
+	{
+		auto& command(m.findCommand(argCommandName.getValue()));
+		log("Command " + command.getNamesString() + " usage:");
+		log(command.getNamesString() + " " + command.getArgsString() + " " + command.getFlagsString());
+	});
+}
+
+void initSum()
+{
+	auto& sumCommand(m.create({"sum"}));
+	auto& arg1(sumCommand.createArg<int>("addendo 1"));
+	auto& arg2(sumCommand.createArg<int>("addendo 2"));
+	sumCommand.createFlag("d", "double");
+	sumCommand.setFunc([&]
+	{
+		int i = arg1.getValue() + arg2.getValue();
+		if(sumCommand.isFlagActive(0)) i *= 2;
+		log(toStr(i));
+	});
+}
+
+void initCommands()
+{
+	initHelp();
+	initSum();
+}
+
 int main(int argc, char* argv[])
 {
+	initCommands();
+
 	vector<string> args;
 	for(int i{1}; i < argc; ++i) args.push_back(toStr(argv[i]));
 
-	CLMain main;
-
-	auto& sum(main.createCommand({"sum"}));
-	sum.createArg<int>();
-	sum.createArg<int>();
-	sum.createFlag("d", "double");
-	sum.setFunc([&]
-	{
-		int i = sum.getArgValue<int>(0) + sum.getArgValue<int>(1);
-		if(sum.isFlagActive(0)) i *= 2;
-		log(toStr(i));
-	});
-
-	main.parseCommandLine(args);
+	try{ m.parseCommandLine(args); }
+	catch(runtime_error mException) { log(mException.what()); return 1; }
 
 	return 0;
 }

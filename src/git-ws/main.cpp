@@ -39,8 +39,7 @@ struct GitWs
 			pclose(pipe);
 
 			for(auto& f : files) log(f, ">");
-			log("", "----");
-			log("");
+			log("", "----"); log("");
 		}
 	}
 
@@ -101,7 +100,7 @@ struct GitWs
 int main(int argc, char* argv[])
 {
 	vector<string> args;
-	for(int i{1}; i < argc; ++i) args.push_back(toStr(argv[i]));
+	for(int i{1}; i < argc; ++i) args.push_back(argv[i]);
 
 	try{ GitWs{}.cmdLine.parseCommandLine(args); }
 	catch(runtime_error mException) { log(mException.what()); return 1; }

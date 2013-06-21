@@ -185,9 +185,8 @@ void runCommandInRepos(const string& mCommand)
 {
 	for(const auto& f : repoFolders)
 	{
-		log(f);
-		string cmd{"(cd " + f + ";" + mCommand + ")"};
-		system(cmd.c_str());
+		log("	" + f);
+		system(string{"(cd " + f + ";" + mCommand + ")"}.c_str());
 		log("");
 	}
 }

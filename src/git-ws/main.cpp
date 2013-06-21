@@ -79,7 +79,7 @@ struct GitWs
 			{
 				runShInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
 				runShInRepos("git commit -am 'automated submodule update'; git push");
-				runShInRepos("git submodule update");
+				//runShInRepos("git submodule update");
 			}
 		};
 	}

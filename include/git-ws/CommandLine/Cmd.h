@@ -14,12 +14,14 @@ namespace ssvcl
 	class Flag;
 	class ArgBase;
 	template<typename T> class Arg;
+	template<typename T> class OptArg;
 
 	class Cmd
 	{
 		private:
 			std::vector<std::string> names;
 			std::vector<ArgBase*> args; // owned
+			std::vector<ArgBase*> optArgs; // owned
 			std::vector<Flag*> flags; // owned
 			std::function<void()> func;
 
@@ -32,6 +34,9 @@ namespace ssvcl
 			template<typename T> Arg<T>& createArg(const std::string& mDescription) { auto result(new Arg<T>(mDescription)); args.push_back(result); return *result; }
 			void setArgValue(unsigned int mIndex, const std::string& mValue);
 			unsigned int getArgCount();
+
+			template<typename T> OptArg<T>& createOptArg(const std::string& mDescription) { auto result(new OptArg<T>(mDescription)); optArgs.push_back(result); return *result; }
+			void setOptArgValue(unsigned int mIndex, const std::string& mValue);
 
 			Flag& createFlag(const std::string& mShortName, const std::string& mLongName);
 			bool isFlagActive(unsigned int mIndex);

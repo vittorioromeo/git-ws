@@ -22,6 +22,12 @@ namespace ssvcl
 			const std::string& getDescription();
 			std::string getArgString();
 	};
+
+	class OptArgBase : public ArgBase
+	{
+		private:
+			bool active{false};
+	};
 }
 
 #endif

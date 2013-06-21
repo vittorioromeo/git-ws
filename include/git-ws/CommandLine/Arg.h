@@ -21,6 +21,18 @@ namespace ssvcl
 			T get() const { return value; }
 			void set(const std::string& mValue) override { value = Parser<T>::parse(mValue); }
 	};
+
+	template<typename T> class OptArg : public Arg<T>
+	{
+		private:
+			T defaultValue;
+			bool active{false};
+
+		public:
+			OptArg(T mDefaultValue, const std::string& mDescription) : defaultValue{mDefaultValue}, Arg<T>{mDescription} { }
+
+			T get() const { return active ? this->value : defaultValue; }
+	};
 }
 
 #endif

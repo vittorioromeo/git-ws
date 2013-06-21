@@ -1,3 +1,7 @@
+// Copyright (c) 2013 Vittorio Romeo
+// License: Academic Free License ("AFL") v. 3.0
+// AFL License page: http://opensource.org/licenses/AFL-3.0
+
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -81,9 +85,15 @@ struct GitWs
 	}
 	void initCmdStatus() { cmdline.create({"status"}) += [&]{ runShInRepos("git status -s --ignore-submodules=dirty"); }; }
 	void initCmdGitg() { cmdline.create({"gitg"}) += [&]{ runShInRepos("gitg&"); }; }
+	void initCmdDo()
+	{
+		auto& cmd(cmdline.create({"do"}));
+		auto& arg(cmd.createArg<string>("command to execute"));
+		cmd += [&]{ runShInRepos(arg.get()); };
+	}
 
 	void initRepoPaths() { for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoPaths.push_back(p); }
-	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); }
+	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); }
 
 	GitWs() { initRepoPaths(); initCmds(); }
 };

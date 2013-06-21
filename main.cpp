@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace ssvu;
+using namespace ssvu::FileSystem;
 
 const string flagPrefixShort{"-"};
 const string flagPrefixLong{"--"};
@@ -34,7 +35,7 @@ class CLArgBase
 		CLArgBase(const string& mDescription) : description{mDescription} { }
 
 		virtual ~CLArgBase() { }
-		virtual void setValue(const string& mString) = 0;
+		virtual void set(const string& mString) = 0;
 
 		const string& getDescription() { return description; }
 		string getArgString() { return "(" + description + ")"; }
@@ -47,8 +48,8 @@ template<typename T> class CLArg : public CLArgBase
 	public:
 		CLArg(const string& mDescription) : CLArgBase{mDescription} { }
 
-		T getValue() { return value; }
-		void setValue(const string& mValue) override { value = CLValueParser<T>::parse(mValue); }
+		T get() const { return value; }
+		void set(const string& mValue) override { value = CLValueParser<T>::parse(mValue); }
 };
 
 class CLFlag
@@ -75,14 +76,14 @@ class CLCommand
 {
 	private:
 		vector<string> names;
-		vector<CLArgBase*> args;
-		vector<CLFlag*> flags;
+		vector<CLArgBase*> args; // owned
+		vector<CLFlag*> flags; // owned
 		function<void()> func;
 
 		CLFlag& findFlag(const string& mName)
 		{
 			for(const auto& f : flags) if(f->hasName(mName)) return *f;
-			throw runtime_error("No flag with name [" + mName + "] in command " + getNamesString());
+			throw runtime_error("No flag with name '" + mName + "' in command " + getNamesString());
 		}
 
 	public:
@@ -94,8 +95,7 @@ class CLCommand
 		}
 
 		template<typename T> CLArg<T>& createArg(const string& mDescription) { auto result(new CLArg<T>(mDescription)); args.push_back(result); return *result; }
-		void setArgValue(unsigned int mIndex, const string& mValue) { args[mIndex]->setValue(mValue); }
-		template<typename T> T getArgValue(unsigned int mIndex) { return static_cast<CLArg<T>*>(args[mIndex])->getValue(); }
+		void setArgValue(unsigned int mIndex, const string& mValue) { args[mIndex]->set(mValue); }
 		unsigned int getArgCount() { return args.size(); }
 
 		CLFlag& createFlag(const string& mShortName, const string& mLongName) { auto result(new CLFlag{mShortName, mLongName}); flags.push_back(result); return *result; }
@@ -178,7 +178,19 @@ class CLMain
 		}
 };
 
+vector<string> repoFolders;
 CLMain m;
+
+void runCommandInRepos(const string& mCommand)
+{
+	for(const auto& f : repoFolders)
+	{
+		log(f);
+		string cmd{"(cd " + f + ";" + mCommand + ")"};
+		system(cmd.c_str());
+		log("");
+	}
+}
 
 void initHelp()
 {
@@ -186,34 +198,64 @@ void initHelp()
 	auto& argCommandName(helpCommand.createArg<string>("command name"));
 	helpCommand.setFunc([&]
 	{
-		auto& command(m.findCommand(argCommandName.getValue()));
+		auto& command(m.findCommand(argCommandName.get()));
 		log("Command " + command.getNamesString() + " usage:");
 		log(command.getNamesString() + " " + command.getArgsString() + " " + command.getFlagsString());
 	});
 }
 
-void initSum()
+void initPush()
 {
-	auto& sumCommand(m.create({"sum"}));
-	auto& arg1(sumCommand.createArg<int>("addendo 1"));
-	auto& arg2(sumCommand.createArg<int>("addendo 2"));
-	sumCommand.createFlag("d", "double");
-	sumCommand.setFunc([&]
+	auto& pushCmd(m.create({"push"}));
+	auto& forceFlag(pushCmd.createFlag("f", "force"));
+	pushCmd.setFunc([&]
 	{
-		int i = arg1.getValue() + arg2.getValue();
-		if(sumCommand.isFlagActive(0)) i *= 2;
-		log(toStr(i));
+		runCommandInRepos(forceFlag.isActive() ? "git push -f" : "git push");
 	});
 }
 
-void initCommands()
+void initPull()
 {
-	initHelp();
-	initSum();
+	auto& pullCmd(m.create({"pull"}));
+	auto& stashFlag(pullCmd.createFlag("s", "stash"));
+	pullCmd.setFunc([&]
+	{
+		runCommandInRepos(stashFlag.isActive() ? "git stash; git pull" : "git pull");
+	});
 }
+
+void initStatus()
+{
+	m.create({"status"}).setFunc([&]{ runCommandInRepos("git status -s"); });
+}
+
+void initSubmodule()
+{
+	auto& submoduleCmd(m.create({"sub", "submodule"}));
+	auto& arg(submoduleCmd.createArg<string>("submodule action"));
+	submoduleCmd.setFunc([&]
+	{
+		if(arg.get() == "push") runCommandInRepos("git commit -am 'automated submodule update'; git push");
+		else if(arg.get() == "pull") runCommandInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
+		else if(arg.get() == "au")
+		{
+			runCommandInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
+			runCommandInRepos("git commit -am 'automated submodule update'; git push");
+		}
+	});
+}
+
+void initGitg()
+{
+	m.create({"gitg"}).setFunc([&]{ runCommandInRepos("gitg&"); });
+}
+
+void initCommands() { initHelp(); initPush(); initPull(); initStatus(); initSubmodule(); initGitg(); }
 
 int main(int argc, char* argv[])
 {
+	for(auto& cf : getScan<Mode::Single, Type::Folder>("./")) if(exists(cf + "/.git/")) repoFolders.push_back(cf);
+
 	initCommands();
 
 	vector<string> args;
@@ -224,3 +266,4 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+

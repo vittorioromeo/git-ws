@@ -1,3 +1,7 @@
+// Copyright (c) 2013 Vittorio Romeo
+// License: Academic Free License ("AFL") v. 3.0
+// AFL License page: http://opensource.org/licenses/AFL-3.0
+
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/Cmd.h"
 #include "git-ws/CommandLine/Flag.h"

@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -20,8 +21,21 @@ struct GitWs
 	{
 		for(const auto& p : repoPaths)
 		{
-			log("	" + p);
-			system(string{"(cd " + p + ";" + mCommand + ")"}.c_str());
+			log("<<" + p + ">>", "Repo");
+
+			FILE* pipe{popen(string{"(cd " + p + ";" + mCommand + ")"}.c_str(), "r")};
+			char buffer[1000];
+			string file;
+			vector<string> files;
+			while(fgets(buffer, sizeof(buffer), pipe) != NULL)
+			{
+				file = buffer;
+				files.push_back(file.substr(0, file.size() - 1));
+			}
+			pclose(pipe);
+
+			for(auto& f : files) log(f, ">");
+			log("", "----");
 			log("");
 		}
 	}
@@ -78,9 +92,8 @@ int main(int argc, char* argv[])
 {
 	vector<string> args;
 	for(int i{1}; i < argc; ++i) args.push_back(toStr(argv[i]));
-	GitWs gitWs;
 
-	try{ gitWs.cmdline.parseCommandLine(args); }
+	try{ GitWs{}.cmdline.parseCommandLine(args); }
 	catch(runtime_error mException) { log(mException.what()); return 1; }
 
 	return 0;

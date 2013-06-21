@@ -4,102 +4,83 @@
 #include <functional>
 #include <stdexcept>
 #include <SSVUtils/SSVUtils.h>
-#include "git-ws/CommandLine/Parser.h"
-#include "git-ws/CommandLine/ArgBase.h"
-#include "git-ws/CommandLine/Arg.h"
-#include "git-ws/CommandLine/Flag.h"
-#include "git-ws/CommandLine/Cmd.h"
-#include "git-ws/CommandLine/CmdLine.h"
+#include "git-ws/CommandLine/CommandLine.h"
 
 using namespace std;
 using namespace ssvu;
 using namespace ssvu::FileSystem;
 using namespace ssvcl;
 
-vector<string> repoFolders;
-CmdLine m;
-
-void runCommandInRepos(const string& mCommand)
+struct GitWs
 {
-	for(const auto& f : repoFolders)
+	vector<string> repoPaths;
+	CmdLine cmdline;
+
+	void runShInRepos(const string& mCommand)
 	{
-		log("	" + f);
-		system(string{"(cd " + f + ";" + mCommand + ")"}.c_str());
-		log("");
-	}
-}
-
-void initHelp()
-{
-	auto& helpCommand(m.create({"?", "help"}));
-	auto& argCommandName(helpCommand.createArg<string>("command name"));
-	helpCommand.setFunc([&]
-	{
-		auto& command(m.findCommand(argCommandName.get()));
-		log("Command " + command.getNamesString() + " usage:");
-		log(command.getNamesString() + " " + command.getArgsString() + " " + command.getFlagsString());
-	});
-}
-
-void initPush()
-{
-	auto& pushCmd(m.create({"push"}));
-	auto& forceFlag(pushCmd.createFlag("f", "force"));
-	pushCmd.setFunc([&]
-	{
-		runCommandInRepos(forceFlag.isActive() ? "git push -f" : "git push");
-	});
-}
-
-void initPull()
-{
-	auto& pullCmd(m.create({"pull"}));
-	auto& stashFlag(pullCmd.createFlag("s", "stash"));
-	pullCmd.setFunc([&]
-	{
-		runCommandInRepos(stashFlag.isActive() ? "git stash; git pull" : "git pull");
-	});
-}
-
-void initStatus()
-{
-	m.create({"status"}).setFunc([&]{ runCommandInRepos("git status -s --ignore-submodules=dirty"); });
-}
-
-void initSubmodule()
-{
-	auto& submoduleCmd(m.create({"sub", "submodule"}));
-	auto& arg(submoduleCmd.createArg<string>("submodule action"));
-	submoduleCmd.setFunc([&]
-	{
-		if(arg.get() == "push") runCommandInRepos("git commit -am 'automated submodule update'; git push");
-		else if(arg.get() == "pull") runCommandInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
-		else if(arg.get() == "au")
+		for(const auto& p : repoPaths)
 		{
-			runCommandInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
-			runCommandInRepos("git commit -am 'automated submodule update'; git push");
-			runCommandInRepos("git submodule update");
+			log("	" + p);
+			system(string{"(cd " + p + ";" + mCommand + ")"}.c_str());
+			log("");
 		}
-	});
-}
+	}
 
-void initGitg()
-{
-	m.create({"gitg"}).setFunc([&]{ runCommandInRepos("gitg&"); });
-}
+	void initCmdHelp()
+	{
+		auto& cmd(cmdline.create({"?", "help"}));
+		auto& arg(cmd.createArg<string>("command name"));
+		cmd += [&]
+		{
+			auto& c(cmdline.findCommand(arg.get()));
+			log(c.getNamesString(), "Command help");
+			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getFlagsString());
+		};
+	}
+	void initCmdPush()
+	{
+		auto& cmd(cmdline.create({"push"}));
+		auto& flagForce(cmd.createFlag("f", "force"));
+		cmd += [&]{ runShInRepos(flagForce ? "git push -f" : "git push"); };
+	}
+	void initCmdPull()
+	{
+		auto& cmd(cmdline.create({"pull"}));
+		auto& flagStash(cmd.createFlag("s", "stash"));
+		cmd += [&]{ runShInRepos(flagStash ? "git stash; git pull" : "git pull"); };
+	}
+	void initCmdSubmodule()
+	{
+		auto& cmd(cmdline.create({"sub", "submodule"}));
+		auto& arg(cmd.createArg<string>("submodule action"));
+		cmd += [&]
+		{
+			if(arg.get() == "push") runShInRepos("git commit -am 'automated submodule update'; git push");
+			else if(arg.get() == "pull") runShInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
+			else if(arg.get() == "au")
+			{
+				runShInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
+				runShInRepos("git commit -am 'automated submodule update'; git push");
+				runShInRepos("git submodule update");
+			}
+		};
+	}
+	void initCmdStatus() { cmdline.create({"status"}) += [&]{ runShInRepos("git status -s --ignore-submodules=dirty"); }; }
+	void initCmdGitg() { cmdline.create({"gitg"}) += [&]{ runShInRepos("gitg&"); }; }
 
-void initCommands() { initHelp(); initPush(); initPull(); initStatus(); initSubmodule(); initGitg(); }
+	void initRepoPaths() { for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoPaths.push_back(p); }
+	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); }
+
+	GitWs() { initRepoPaths(); initCmds(); }
+};
 
 int main(int argc, char* argv[])
 {
-	for(auto& cf : getScan<Mode::Single, Type::Folder>("./")) if(exists(cf + "/.git/")) repoFolders.push_back(cf);
-
-	initCommands();
-
 	vector<string> args;
 	for(int i{1}; i < argc; ++i) args.push_back(toStr(argv[i]));
+	GitWs gitWs;
 
-	try{ m.parseCommandLine(args); }
+	try{ gitWs.cmdline.parseCommandLine(args); }
 	catch(runtime_error mException) { log(mException.what()); return 1; }
 
 	return 0;

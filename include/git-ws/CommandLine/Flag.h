@@ -17,8 +17,9 @@ namespace ssvcl
 		public:
 			Flag(const std::string& mShortName, const std::string& mLongName);
 
-			void setActive(bool mActive);
-			bool isActive();
+			Flag& operator=(bool mActive);
+			operator bool() const;
+
 			bool hasName(const std::string& mName);
 
 			const std::string& getShortName();

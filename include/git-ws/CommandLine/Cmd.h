@@ -36,7 +36,8 @@ namespace ssvcl
 
 			bool hasName(const std::string& mName);
 			void execute();
-			void setFunc(std::function<void()> mFunc);
+
+			Cmd& operator+=(std::function<void()> mFunc);
 
 			const std::vector<std::string>& getNames();
 			const std::vector<ArgBase*>& getArgs();

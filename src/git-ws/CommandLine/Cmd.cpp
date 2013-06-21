@@ -23,13 +23,13 @@ namespace ssvcl
 
 	Flag&Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(result); return *result; }
 	unsigned int Cmd::getFlagCount() { return flags.size(); }
-	bool Cmd::isFlagActive(unsigned int mIndex) { return flags[mIndex]->isActive(); }
-	void Cmd::activateFlag(const string& mName) { findFlag(mName).setActive(true); }
+	bool Cmd::isFlagActive(unsigned int mIndex) { return *flags[mIndex]; }
+	void Cmd::activateFlag(const string& mName) { findFlag(mName) = true; }
 
 	bool Cmd::hasName(const string& mName) { return contains(names, mName); }
 
 	void Cmd::execute() { func(); }
-	void Cmd::setFunc(function<void ()> mFunc) { func = mFunc; }
+	Cmd& Cmd::operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
 
 	const vector<string>&Cmd::getNames() { return names; }
 	const vector<ArgBase*>&Cmd::getArgs() { return args; }

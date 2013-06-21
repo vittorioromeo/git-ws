@@ -15,10 +15,17 @@ find_package(SSVJsonCpp REQUIRED)
 find_package(SSVUtils REQUIRED)
 find_package(SSVUtilsJson REQUIRED)
 
-file(GLOB SRC_LIST "./*.cpp" "./*.h")
+set(SRC_DIR "src")
+set(INC_DIR "include")
 
-include_directories("./")
-include_directories("./Utils/")
+file(GLOB SRC_LIST
+	"${INC_DIR}/${PROJECT_NAME}/*.h"
+	"${SRC_DIR}/${PROJECT_NAME}/*.cpp"
+	"${INC_DIR}/${PROJECT_NAME}/CommandLine/*.h"
+	"${SRC_DIR}/${PROJECT_NAME}/CommandLine/*.cpp"
+)
+
+include_directories(${INC_DIR})
 include_directories(${SSVJSONCPP_INCLUDE_DIR})
 include_directories(${SSVUTILS_INCLUDE_DIR})
 include_directories(${SSVUTILSJSON_INCLUDE_DIR})

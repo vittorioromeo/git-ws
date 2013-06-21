@@ -225,7 +225,7 @@ void initPull()
 
 void initStatus()
 {
-	m.create({"status"}).setFunc([&]{ runCommandInRepos("git status -s"); });
+	m.create({"status"}).setFunc([&]{ runCommandInRepos("git status -s --ignore-submodules=dirty"); });
 }
 
 void initSubmodule()
@@ -240,6 +240,7 @@ void initSubmodule()
 		{
 			runCommandInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
 			runCommandInRepos("git commit -am 'automated submodule update'; git push");
+			runCommandInRepos("git submodule update");
 		}
 	});
 }

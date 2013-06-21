@@ -19,7 +19,7 @@ using namespace ssvcl;
 struct GitWs
 {
 	vector<string> repoPaths;
-	CmdLine cmdline;
+	CmdLine cmdLine;
 
 	void runShInRepos(const string& mCommand)
 	{
@@ -46,30 +46,30 @@ struct GitWs
 
 	void initCmdHelp()
 	{
-		auto& cmd(cmdline.create({"?", "help"}));
+		auto& cmd(cmdLine.create({"?", "help"}));
 		auto& arg(cmd.createArg<string>("command name"));
 		cmd += [&]
 		{
-			auto& c(cmdline.findCommand(arg.get()));
+			auto& c(cmdLine.findCommand(arg.get()));
 			log(c.getNamesString(), "Command help");
-			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getFlagsString());
+			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString());
 		};
 	}
 	void initCmdPush()
 	{
-		auto& cmd(cmdline.create({"push"}));
+		auto& cmd(cmdLine.create({"push"}));
 		auto& flagForce(cmd.createFlag("f", "force"));
 		cmd += [&]{ runShInRepos(flagForce ? "git push -f" : "git push"); };
 	}
 	void initCmdPull()
 	{
-		auto& cmd(cmdline.create({"pull"}));
+		auto& cmd(cmdLine.create({"pull"}));
 		auto& flagStash(cmd.createFlag("s", "stash"));
 		cmd += [&]{ runShInRepos(flagStash ? "git stash; git pull" : "git pull"); };
 	}
 	void initCmdSubmodule()
 	{
-		auto& cmd(cmdline.create({"sub", "submodule"}));
+		auto& cmd(cmdLine.create({"sub", "submodule"}));
 		auto& arg(cmd.createArg<string>("submodule action"));
 		cmd += [&]
 		{
@@ -83,11 +83,11 @@ struct GitWs
 			}
 		};
 	}
-	void initCmdStatus() { cmdline.create({"status"}) += [&]{ runShInRepos("git status -s --ignore-submodules=dirty"); }; }
-	void initCmdGitg() { cmdline.create({"gitg"}) += [&]{ runShInRepos("gitg&"); }; }
+	void initCmdStatus() { cmdLine.create({"status"}) += [&]{ runShInRepos("git status -s --ignore-submodules=dirty"); }; }
+	void initCmdGitg() { cmdLine.create({"gitg"}) += [&]{ runShInRepos("gitg&"); }; }
 	void initCmdDo()
 	{
-		auto& cmd(cmdline.create({"do"}));
+		auto& cmd(cmdLine.create({"do"}));
 		auto& arg(cmd.createArg<string>("command to execute"));
 		cmd += [&]{ runShInRepos(arg.get()); };
 	}
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 	vector<string> args;
 	for(int i{1}; i < argc; ++i) args.push_back(toStr(argv[i]));
 
-	try{ GitWs{}.cmdline.parseCommandLine(args); }
+	try{ GitWs{}.cmdLine.parseCommandLine(args); }
 	catch(runtime_error mException) { log(mException.what()); return 1; }
 
 	return 0;

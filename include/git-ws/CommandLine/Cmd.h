@@ -35,8 +35,9 @@ namespace ssvcl
 			void setArgValue(unsigned int mIndex, const std::string& mValue);
 			unsigned int getArgCount();
 
-			template<typename T> OptArg<T>& createOptArg(const std::string& mDescription) { auto result(new OptArg<T>(mDescription)); optArgs.push_back(result); return *result; }
+			template<typename T> OptArg<T>& createOptArg(T mDefaultValue, const std::string& mDescription) { auto result(new OptArg<T>(mDefaultValue, mDescription)); optArgs.push_back(result); return *result; }
 			void setOptArgValue(unsigned int mIndex, const std::string& mValue);
+			unsigned int getOptArgCount();
 
 			Flag& createFlag(const std::string& mShortName, const std::string& mLongName);
 			bool isFlagActive(unsigned int mIndex);
@@ -54,6 +55,7 @@ namespace ssvcl
 
 			std::string getNamesString();
 			std::string getArgsString();
+			std::string getOptArgsString();
 			std::string getFlagsString();
 	};
 }

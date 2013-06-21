@@ -25,7 +25,8 @@ namespace ssvcl
 	void Cmd::setArgValue(unsigned int mIndex, const string& mValue) { args[mIndex]->set(mValue); }
 	unsigned int Cmd::getArgCount() { return args.size(); }
 
-	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue) { optArgs[mIndex]->set(mValue); optArgs[mIndex]->setActive(true); }
+	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue) { optArgs[mIndex]->set(mValue); }
+	unsigned int Cmd::getOptArgCount() { return optArgs.size(); }
 
 	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(result); return *result; }
 	unsigned int Cmd::getFlagCount() { return flags.size(); }
@@ -59,6 +60,16 @@ namespace ssvcl
 		{
 			result.append(args[i]->getArgString());
 			if(i < args.size() - 1) result.append(" ");
+		}
+		return result;
+	}
+	string Cmd::getOptArgsString()
+	{
+		string result;
+		for(unsigned int i{0}; i < optArgs.size(); ++i)
+		{
+			result.append("optional:" + optArgs[i]->getArgString());
+			if(i < optArgs.size() - 1) result.append(" ");
 		}
 		return result;
 	}

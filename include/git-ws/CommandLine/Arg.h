@@ -12,7 +12,7 @@ namespace ssvcl
 {
 	template<typename T> class Arg : public ArgBase
 	{
-		private:
+		protected:
 			T value;
 
 		public:
@@ -29,9 +29,12 @@ namespace ssvcl
 			bool active{false};
 
 		public:
-			OptArg(T mDefaultValue, const std::string& mDescription) : defaultValue{mDefaultValue}, Arg<T>{mDescription} { }
+			OptArg(T mDefaultValue, const std::string& mDescription) :  Arg<T>{mDescription}, defaultValue{mDefaultValue} { }
 
 			T get() const { return active ? this->value : defaultValue; }
+			void set(const std::string& mValue) override { Arg<T>::set(mValue); active = true; }
+
+			operator bool() const { return active; }
 	};
 }
 

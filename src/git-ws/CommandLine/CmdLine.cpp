@@ -39,7 +39,7 @@ namespace ssvcl
 		for(const auto& f : cFlags) eraseRemove(args, f);
 
 		// Find args, put them in cArgs
-		vector<string> cArgs, cOptArgs;
+		vector<string> cArgs;
 		for(unsigned int i{cmd.getArgCount()}; i > 0; --i)
 		{
 			if(args.empty()) throw runtime_error("Incorrect number of args for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
@@ -48,6 +48,7 @@ namespace ssvcl
 		}
 
 		// Remaining string in args must be optargs
+		vector<string> cOptArgs;
 		while(!args.empty())
 		{
 			cOptArgs.push_back(args.front());

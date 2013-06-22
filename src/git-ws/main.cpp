@@ -21,12 +21,10 @@ struct GitWs
 	vector<string> repoPaths;
 	CmdLine cmdLine;
 
-	void runShInRepos(const string& mCommand)
+	void runShInRepos(const string& mCommand, bool mPrintEmpty = false)
 	{
 		for(const auto& p : repoPaths)
 		{
-			log("<<" + p + ">>", "Repo");
-
 			FILE* pipe{popen(string{"(cd " + p + ";" + mCommand + ")"}.c_str(), "r")};
 			char buffer[1000];
 			string file;
@@ -38,6 +36,9 @@ struct GitWs
 			}
 			pclose(pipe);
 
+			if(files.empty() && !mPrintEmpty) continue;
+
+			log("<<" + p + ">>", "Repo");
 			for(auto& f : files) log(f, ">");
 			log("", "----"); log("");
 		}
@@ -82,7 +83,12 @@ struct GitWs
 			}
 		};
 	}
-	void initCmdStatus() { cmdLine.create({"status"}) += [&]{ runShInRepos("git status -s --ignore-submodules=dirty"); }; }
+	void initCmdStatus()
+	{
+		auto& cmd(cmdLine.create({"st", "status"}));
+		auto& showAllFlag(cmd.createFlag("a", "showall"));
+		cmd += [&]{ runShInRepos("git status -s --ignore-submodules=dirty", showAllFlag); };
+	}
 	void initCmdGitg() { cmdLine.create({"gitg"}) += [&]{ runShInRepos("gitg&"); }; }
 	void initCmdDo()
 	{

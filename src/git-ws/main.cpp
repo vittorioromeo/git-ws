@@ -65,7 +65,13 @@ struct GitWs
 	{
 		auto& cmd(cmdLine.create({"pull"}));
 		auto& flagStash(cmd.createFlag("s", "stash"));
-		cmd += [&]{ runShInRepos(flagStash ? "git stash; git pull" : "git pull"); };
+		auto& flagForce(cmd.createFlag("f", "force-checkout"));
+		cmd += [&]
+		{ 
+			if(flagStash) runShInRepos("git stash");
+			if(flagForce) runShInRepos("git checkout -f");
+			runShInRepos("git pull"); 
+		};
 	}
 	void initCmdSubmodule()
 	{
@@ -79,7 +85,6 @@ struct GitWs
 			{
 				runShInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
 				runShInRepos("git commit -am 'automated submodule update'; git push");
-				//runShInRepos("git submodule update");
 			}
 		};
 	}

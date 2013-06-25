@@ -67,10 +67,10 @@ struct GitWs
 		auto& flagStash(cmd.createFlag("s", "stash"));
 		auto& flagForce(cmd.createFlag("f", "force-checkout"));
 		cmd += [&]
-		{ 
+		{
 			if(flagStash) runShInRepos("git stash");
 			if(flagForce) runShInRepos("git checkout -f");
-			runShInRepos("git pull"); 
+			runShInRepos("git pull");
 		};
 	}
 	void initCmdSubmodule()

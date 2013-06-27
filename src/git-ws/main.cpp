@@ -47,10 +47,23 @@ struct GitWs
 	void initCmdHelp()
 	{
 		auto& cmd(cmdLine.create({"?", "help"}));
-		auto& arg(cmd.createArg<string>("command name"));
+		auto& optArg(cmd.createOptArg<string>("", "command name"));
 		cmd += [&]
 		{
-			auto& c(cmdLine.findCommand(arg.get()));
+			if(!optArg)
+			{
+				log("Git-ws help");
+				log("");
+
+				for(const auto& c : cmdLine.getCmds())
+				{
+					log(c->getNamesString(), "Command help");
+					log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString());
+					log("");
+				}
+			}
+
+			auto& c(cmdLine.findCmd(optArg.get()));
 			log(c.getNamesString(), "Command help");
 			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString());
 		};
@@ -113,7 +126,7 @@ int main(int argc, char* argv[])
 	vector<string> args;
 	for(int i{1}; i < argc; ++i) args.push_back(argv[i]);
 
-	try{ GitWs{}.cmdLine.parseCommandLine(args); }
+	try{ GitWs{}.cmdLine.parseCmdLine(args); }
 	catch(runtime_error mException) { log(mException.what()); return 1; }
 
 	return 0;

@@ -19,8 +19,8 @@ namespace ssvcl
 			virtual ~ArgBase();
 
 			virtual void set(const std::string& mString) = 0;
-			const std::string& getDescription();
-			std::string getArgString();
+			const std::string& getDescription() const;
+			std::string getArgString() const;
 	};
 }
 

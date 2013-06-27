@@ -24,13 +24,13 @@ namespace ssvcl
 			Flag& operator=(bool mActive);
 			operator bool() const;
 
-			bool hasName(const std::string& mName);
+			bool hasName(const std::string& mName) const;
 
-			const std::string& getShortName();
-			const std::string& getLongName();
-			std::string getShortNameWithPrefix();
-			std::string getLongNameWithPrefix();
-			std::string getFlagString();
+			const std::string& getShortName() const;
+			const std::string& getLongName() const;
+			std::string getShortNameWithPrefix() const;
+			std::string getLongNameWithPrefix() const;
+			std::string getFlagString() const;
 	};
 }
 

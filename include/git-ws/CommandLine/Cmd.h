@@ -28,35 +28,35 @@ namespace ssvcl
 			Flag& findFlag(const std::string& mName);
 
 		public:
-			Cmd(std::initializer_list<std::string> mNames);
+			Cmd(const std::initializer_list<std::string>& mNames);
 			~Cmd();
 
+			Cmd& operator+=(std::function<void()> mFunc);
+			Cmd& operator()();
+
 			template<typename T> Arg<T>& createArg(const std::string& mDescription) { auto result(new Arg<T>(mDescription)); args.push_back(result); return *result; }
-			void setArgValue(unsigned int mIndex, const std::string& mValue);
-			unsigned int getArgCount();
-
 			template<typename T> OptArg<T>& createOptArg(T mDefaultValue, const std::string& mDescription) { auto result(new OptArg<T>(mDefaultValue, mDescription)); optArgs.push_back(result); return *result; }
-			void setOptArgValue(unsigned int mIndex, const std::string& mValue);
-			unsigned int getOptArgCount();
-
 			Flag& createFlag(const std::string& mShortName, const std::string& mLongName);
-			bool isFlagActive(unsigned int mIndex);
-			unsigned int getFlagCount();
+
+			void setArgValue(unsigned int mIndex, const std::string& mValue);
+			void setOptArgValue(unsigned int mIndex, const std::string& mValue);
+
 			void activateFlag(const std::string& mName);
 
-			bool hasName(const std::string& mName);
-			void execute();
+			bool hasName(const std::string& mName) const;
+			bool isFlagActive(unsigned int mIndex) const;
 
-			Cmd& operator+=(std::function<void()> mFunc);
+			unsigned int getArgCount() const;
+			unsigned int getOptArgCount() const;
+			unsigned int getFlagCount() const;
+			const std::vector<std::string>& getNames() const;
+			const std::vector<ArgBase*>& getArgs() const;
+			const std::vector<Flag*>& getFlags() const;
 
-			const std::vector<std::string>& getNames();
-			const std::vector<ArgBase*>& getArgs();
-			const std::vector<Flag*>& getFlags();
-
-			std::string getNamesString();
-			std::string getArgsString();
-			std::string getOptArgsString();
-			std::string getFlagsString();
+			std::string getNamesString() const;
+			std::string getArgsString() const;
+			std::string getOptArgsString() const;
+			std::string getFlagsString() const;
 	};
 }
 

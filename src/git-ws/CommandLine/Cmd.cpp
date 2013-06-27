@@ -13,36 +13,36 @@ using namespace ssvu;
 
 namespace ssvcl
 {
-	Cmd::Cmd(initializer_list<string> mNames) : names{mNames} { }
-	Cmd::~Cmd() { for(const auto& a : args) delete a; for(const auto& a : optArgs) delete a; for(const auto& f : flags) delete f; }
-
 	Flag& Cmd::findFlag(const string& mName)
 	{
 		for(const auto& f : flags) if(f->hasName(mName)) return *f;
 		throw runtime_error("No flag with name '" + mName + "' in command " + getNamesString());
 	}
 
-	void Cmd::setArgValue(unsigned int mIndex, const string& mValue) { args[mIndex]->set(mValue); }
-	unsigned int Cmd::getArgCount() { return args.size(); }
+	Cmd::Cmd(const initializer_list<string>& mNames) : names{mNames} { }
+	Cmd::~Cmd() { for(const auto& a : args) delete a; for(const auto& a : optArgs) delete a; for(const auto& f : flags) delete f; }
 
-	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue) { optArgs[mIndex]->set(mValue); }
-	unsigned int Cmd::getOptArgCount() { return optArgs.size(); }
-
-	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(result); return *result; }
-	unsigned int Cmd::getFlagCount() { return flags.size(); }
-	bool Cmd::isFlagActive(unsigned int mIndex) { return *flags[mIndex]; }
-	void Cmd::activateFlag(const string& mName) { findFlag(mName) = true; }
-
-	bool Cmd::hasName(const string& mName) { return contains(names, mName); }
-
-	void Cmd::execute() { func(); }
+	Cmd& Cmd::operator()() { func(); return *this; }
 	Cmd& Cmd::operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
 
-	const vector<string>& Cmd::getNames() { return names; }
-	const vector<ArgBase*>& Cmd::getArgs() { return args; }
-	const vector<Flag*>& Cmd::getFlags() { return flags; }
+	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(result); return *result; }
 
-	string Cmd::getNamesString()
+	void Cmd::setArgValue(unsigned int mIndex, const string& mValue)	{ args[mIndex]->set(mValue); }
+	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue)	{ optArgs[mIndex]->set(mValue); }
+
+	void Cmd::activateFlag(const string& mName) { findFlag(mName) = true; }
+
+	bool Cmd::hasName(const string& mName) const		{ return contains(names, mName); }
+	bool Cmd::isFlagActive(unsigned int mIndex) const	{ return *flags[mIndex]; }
+
+	unsigned int Cmd::getArgCount() const			{ return args.size(); }
+	unsigned int Cmd::getOptArgCount() const		{ return optArgs.size(); }
+	unsigned int Cmd::getFlagCount() const			{ return flags.size(); }
+	const vector<string>& Cmd::getNames() const		{ return names; }
+	const vector<ArgBase*>& Cmd::getArgs() const	{ return args; }
+	const vector<Flag*>& Cmd::getFlags() const		{ return flags; }
+
+	string Cmd::getNamesString() const
 	{
 		string result{"<"};
 		for(unsigned int i{0}; i < names.size(); ++i)
@@ -53,7 +53,7 @@ namespace ssvcl
 		result.append(">");
 		return result;
 	}
-	string Cmd::getArgsString()
+	string Cmd::getArgsString() const
 	{
 		string result;
 		for(unsigned int i{0}; i < args.size(); ++i)
@@ -63,7 +63,7 @@ namespace ssvcl
 		}
 		return result;
 	}
-	string Cmd::getOptArgsString()
+	string Cmd::getOptArgsString() const
 	{
 		string result;
 		for(unsigned int i{0}; i < optArgs.size(); ++i)
@@ -73,7 +73,7 @@ namespace ssvcl
 		}
 		return result;
 	}
-	string Cmd::getFlagsString()
+	string Cmd::getFlagsString() const
 	{
 		string result;
 		for(unsigned int i{0}; i < flags.size(); ++i)

@@ -13,12 +13,11 @@ namespace ssvcl
 	Flag& Flag::operator=(bool mActive) { active = mActive; return *this; }
 	Flag::operator bool() const { return active; }
 
-	bool Flag::hasName(const string& mName) { return mName == flagPrefixShort + shortName || mName == flagPrefixLong + longName; }
+	bool Flag::hasName(const string& mName) const { return mName == getShortNameWithPrefix() || mName == getLongNameWithPrefix(); }
 
-	const string& Flag::getShortName() { return shortName; }
-	const string& Flag::getLongName() { return longName; }
-
-	string Flag::getShortNameWithPrefix() { return flagPrefixShort + shortName; }
-	string Flag::getLongNameWithPrefix() { return flagPrefixLong + longName; }
-	string Flag::getFlagString() { return "[" + getShortNameWithPrefix() + " || " + getLongNameWithPrefix() + "]"; }
+	const string& Flag::getShortName() const	{ return shortName; }
+	const string& Flag::getLongName() const		{ return longName; }
+	string Flag::getShortNameWithPrefix() const	{ return flagPrefixShort + shortName; }
+	string Flag::getLongNameWithPrefix() const	{ return flagPrefixLong + longName; }
+	string Flag::getFlagString() const			{ return "[" + getShortNameWithPrefix() + " || " + getLongNameWithPrefix() + "]"; }
 }

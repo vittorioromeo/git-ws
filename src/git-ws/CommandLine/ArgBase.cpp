@@ -10,7 +10,7 @@ namespace ssvcl
 {
 	ArgBase::ArgBase(const string& mDescription) : description{mDescription} { }
 	ArgBase::~ArgBase() { }
-	const string& ArgBase::getDescription() { return description; }
-	string ArgBase::getArgString() { return "(" + description + ")"; }
+	const string& ArgBase::getDescription() const { return description; }
+	string ArgBase::getArgString() const { return "(" + description + ")"; }
 }
 

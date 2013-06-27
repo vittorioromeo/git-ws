@@ -3,6 +3,7 @@
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
 #include <deque>
+#include <stdexcept>
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/Cmd.h"
 #include "git-ws/CommandLine/Flag.h"
@@ -13,17 +14,17 @@ using namespace ssvu;
 
 namespace ssvcl
 {
-	Cmd& CmdLine::findCommand(const string& mName)
+	Cmd& CmdLine::findCmd(const string& mName) const
 	{
-		for(const auto& c : commands) if(c->hasName(mName)) return *c;
+		for(const auto& c : cmds) if(c->hasName(mName)) return *c;
 		throw runtime_error("No command with name <" + mName + ">");
 	}
-	Cmd& CmdLine::create(initializer_list<string> mNames) { auto result(new Cmd{mNames}); commands.push_back(result); return *result; }
-	void CmdLine::parseCommandLine(const vector<string>& mArgs)
+	Cmd& CmdLine::create(const initializer_list<string>& mNames) { auto result(new Cmd{mNames}); cmds.push_back(result); return *result; }
+	void CmdLine::parseCmdLine(const vector<string>& mArgs)
 	{
 		deque<string> args{begin(mArgs), end(mArgs)};
 
-		Cmd& cmd{findCommand(args.front())};
+		Cmd& cmd(findCmd(args.front()));
 		args.pop_front();
 
 		// Find all flags, put them in cFlags, remove them from mArgs
@@ -59,6 +60,7 @@ namespace ssvcl
 		for(unsigned int i{0}; i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
 		for(unsigned int i{0}; i < cOptArgs.size(); ++i) cmd.setOptArgValue(i, cOptArgs[i]);
 		for(const auto& f : cFlags) cmd.activateFlag(f);
-		cmd.execute();
+		cmd();
 	}
+	const vector<Cmd*>& CmdLine::getCmds() const { return cmds; }
 }

@@ -151,7 +151,7 @@ struct GitWs
 			if(exists(p + "/.git/"))
 			{
 				repoPaths.push_back(p);
-				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) { changedRepoPaths.push_back(p); log(p);}
+				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) changedRepoPaths.push_back(p);
 			}
 	}
 	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); }

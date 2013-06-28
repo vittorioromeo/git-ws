@@ -22,6 +22,18 @@ struct GitWs
 	vector<string> changedRepoPaths;
 	CmdLine cmdLine;
 
+	vector<string> getAheadRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& p : repoPaths)
+		{
+			bool isAhead{false};
+			for(auto& f : runShInPath(p, "git status -sb")) if(f.find("ahead") != string::npos) { isAhead = true; break; }
+			if(isAhead) result.push_back(p);
+		}
+		return result;
+	}
+
 	vector<string> runShInPath(const string& mPath, const string& mCommand)
 	{
 		FILE* pipe{popen(string{"(cd " + mPath + ";" + mCommand + ")"}.c_str(), "r")};
@@ -79,11 +91,10 @@ struct GitWs
 	{
 		auto& cmd(cmdLine.create({"push"}));
 		auto& flagForce(cmd.createFlag("f", "force"));
-		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
 		cmd += [&]
 		{
-			auto& currentRepoPaths(flagChanged ? changedRepoPaths : repoPaths);
-			runShInRepos(currentRepoPaths, flagForce ? "git push -f" : "git push");
+			runShInRepos(flagAhead ? getAheadRepoPaths() : repoPaths, flagForce ? "git push -f" : "git push");
 		};
 	}
 	void initCmdPull()
@@ -144,6 +155,24 @@ struct GitWs
 			runShInRepos(currentRepoPaths, arg.get());
 		};
 	}
+	void initCmdQuery()
+	{
+		auto& cmd(cmdLine.create({"query"}));
+		cmd += [&]
+		{
+			log("<<ALL REPO PATHS>>", "----");
+			for(const auto& p : repoPaths) log(p);
+			log("", "----"); log(""); log("");
+
+			log("<<CHANGED REPO PATHS (can commit)>>", "----");
+			for(const auto& p : changedRepoPaths) log(p);
+			log("", "----"); log(""); log("");
+
+			log("<<AHEAD REPO PATHS (can push)>>", "----");
+			for(const auto& p : getAheadRepoPaths()) log(p);
+			log("", "----"); log(""); log("");
+		};
+	}
 
 	void initRepoPaths()
 	{
@@ -154,7 +183,7 @@ struct GitWs
 				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) changedRepoPaths.push_back(p);
 			}
 	}
-	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); }
+	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
 	GitWs() { initRepoPaths(); initCmds(); }
 };

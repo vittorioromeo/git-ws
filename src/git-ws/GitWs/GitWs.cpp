@@ -145,9 +145,14 @@ namespace gitws
 		auto& cmd(cmdLine.create({"do"}));
 		auto& arg(cmd.createArg<string>("command to execute"));
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
 		cmd += [&]
 		{
+			if(flagChanged && flagAhead) { log("-c and -a are mutually exclusive"); return; }
+
 			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
+			if(flagAhead) currentRepoPaths = getAheadRepoPaths();
+
 			runShInRepos(currentRepoPaths, arg.get());
 		};
 	}

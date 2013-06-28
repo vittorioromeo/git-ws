@@ -19,22 +19,29 @@ using namespace ssvcl;
 struct GitWs
 {
 	vector<string> repoPaths;
+	vector<string> changedRepoPaths;
 	CmdLine cmdLine;
 
-	void runShInRepos(const string& mCommand, bool mPrintEmpty = false)
+	vector<string> runShInPath(const string& mPath, const string& mCommand)
 	{
-		for(const auto& p : repoPaths)
+		FILE* pipe{popen(string{"(cd " + mPath + ";" + mCommand + ")"}.c_str(), "r")};
+		char buffer[1000];
+		string file; vector<string> files;
+		while(fgets(buffer, sizeof(buffer), pipe) != NULL)
 		{
-			FILE* pipe{popen(string{"(cd " + p + ";" + mCommand + ")"}.c_str(), "r")};
-			char buffer[1000];
-			string file;
-			vector<string> files;
-			while(fgets(buffer, sizeof(buffer), pipe) != NULL)
-			{
-				file = buffer;
-				files.push_back(file.substr(0, file.size() - 1));
-			}
-			pclose(pipe);
+			file = buffer;
+			files.push_back(file.substr(0, file.size() - 1));
+		}
+		pclose(pipe);
+
+		return files;
+	}
+
+	void runShInRepos(const vector<string>& mRepoPaths, const string& mCommand, bool mPrintEmpty = false)
+	{
+		for(const auto& p : mRepoPaths)
+		{
+			vector<string> files{runShInPath(p, mCommand)};
 
 			if(files.empty() && !mPrintEmpty) continue;
 
@@ -72,32 +79,41 @@ struct GitWs
 	{
 		auto& cmd(cmdLine.create({"push"}));
 		auto& flagForce(cmd.createFlag("f", "force"));
-		cmd += [&]{ runShInRepos(flagForce ? "git push -f" : "git push"); };
+		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		cmd += [&]
+		{
+			auto& currentRepoPaths(flagChanged ? changedRepoPaths : repoPaths);
+			runShInRepos(currentRepoPaths, flagForce ? "git push -f" : "git push");
+		};
 	}
 	void initCmdPull()
 	{
 		auto& cmd(cmdLine.create({"pull"}));
 		auto& flagStash(cmd.createFlag("s", "stash"));
 		auto& flagForce(cmd.createFlag("f", "force-checkout"));
+		auto& flagChanged(cmd.createFlag("c", "changed-only"));
 		cmd += [&]
 		{
-			if(flagStash) runShInRepos("git stash");
-			if(flagForce) runShInRepos("git checkout -f");
-			runShInRepos("git pull");
+			auto& currentRepoPaths(flagChanged ? changedRepoPaths : repoPaths);
+			if(flagStash) runShInRepos(currentRepoPaths, "git stash");
+			if(flagForce) runShInRepos(currentRepoPaths, "git checkout -f");
+			runShInRepos(currentRepoPaths, "git pull");
 		};
 	}
 	void initCmdSubmodule()
 	{
 		auto& cmd(cmdLine.create({"sub", "submodule"}));
 		auto& arg(cmd.createArg<string>("submodule action"));
+		auto& flagChanged(cmd.createFlag("c", "changed-only"));
 		cmd += [&]
 		{
-			if(arg.get() == "push") runShInRepos("git commit -am 'automated submodule update'; git push");
-			else if(arg.get() == "pull") runShInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
+			auto& currentRepoPaths(flagChanged ? changedRepoPaths : repoPaths);
+			if(arg.get() == "push") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
+			else if(arg.get() == "pull") runShInRepos(currentRepoPaths, "git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
 			else if(arg.get() == "au")
 			{
-				runShInRepos("git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
-				runShInRepos("git commit -am 'automated submodule update'; git push");
+				runShInRepos(currentRepoPaths, "git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
+				runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 			}
 		};
 	}
@@ -105,17 +121,39 @@ struct GitWs
 	{
 		auto& cmd(cmdLine.create({"st", "status"}));
 		auto& showAllFlag(cmd.createFlag("a", "showall"));
-		cmd += [&]{ runShInRepos("git status -s --ignore-submodules=dirty", showAllFlag); };
+		cmd += [&]{ runShInRepos(repoPaths, "git status -s --ignore-submodules=dirty", showAllFlag); };
 	}
-	void initCmdGitg() { cmdLine.create({"gitg"}) += [&]{ runShInRepos("gitg&"); }; }
+	void initCmdGitg()
+	{
+		auto& cmd(cmdLine.create({"gitg"}));
+		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		cmd += [&]
+		{
+			auto& currentRepoPaths(flagChanged ? changedRepoPaths : repoPaths);
+			runShInRepos(currentRepoPaths, "gitg&");
+		};
+	}
 	void initCmdDo()
 	{
 		auto& cmd(cmdLine.create({"do"}));
 		auto& arg(cmd.createArg<string>("command to execute"));
-		cmd += [&]{ runShInRepos(arg.get()); };
+		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		cmd += [&]
+		{
+			auto& currentRepoPaths(flagChanged ? changedRepoPaths : repoPaths);
+			runShInRepos(currentRepoPaths, arg.get());
+		};
 	}
 
-	void initRepoPaths() { for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoPaths.push_back(p); }
+	void initRepoPaths()
+	{
+		for(auto& p : getScan<Mode::Single, Type::Folder>("./"))
+			if(exists(p + "/.git/"))
+			{
+				repoPaths.push_back(p);
+				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) { changedRepoPaths.push_back(p); log(p);}
+			}
+	}
 	void initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); }
 
 	GitWs() { initRepoPaths(); initCmds(); }

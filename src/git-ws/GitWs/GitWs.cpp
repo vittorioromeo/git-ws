@@ -142,7 +142,6 @@ namespace gitws
 	}
 	void GitWs::initCmdDo()
 	{
-
 		auto& cmd(cmdLine.create({"do"}));
 		auto& arg(cmd.createArg<string>("command to execute"));
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));

@@ -4,6 +4,33 @@ Command line utility to work with multiple git repositories at once <br/>
 Currently intended for personal use only, but quite functional
 
 
+## How to build
+
+Tested on: **Arch Linux**, with **g++ 4.7.2**
+
+1. Clone this repo
+```bash
+git clone https://github.com/SuperV1234/git-ws
+```
+
+2. Pull all submodules recursively
+```bash
+cd git-ws
+./init-repository.sh
+```
+
+3. Build all submodules + `git-ws`
+```bash
+./build-repository-git-ws.sh
+```
+
+4. You may have to append `/usr/local/lib` to the `$PATH` or `$LD_LIBRARY_PATH` environment variables to allow Open Hexagon to find the required libraries - if that doesn't work, try:
+```bash
+sudo ldconfig /usr/local/lib  
+```
+
+5. Use `git-ws`!
+
 
 ## Usage
 

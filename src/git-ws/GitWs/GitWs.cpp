@@ -137,7 +137,7 @@ namespace gitws
 		cmd += [&]
 		{
 			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
-			runShInRepos(currentRepoPaths, "gitg&");
+			runShInRepos(currentRepoPaths, "gitg -c&");
 		};
 	}
 	void GitWs::initCmdDo()

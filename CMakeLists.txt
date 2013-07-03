@@ -34,7 +34,6 @@ include_directories(${SSVUTILSJSON_INCLUDE_DIR})
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(git-ws ${SSVJSONCPP_LIBRARY})
 target_link_libraries(git-ws ${SSVUTILS_LIBRARY})
-target_link_libraries(git-ws ${SSVUTILSJSON_LIBRARY})
 
 if(UNIX)
 	install(TARGETS git-ws RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/_RELEASE/)

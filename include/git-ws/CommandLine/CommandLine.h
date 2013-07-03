@@ -7,6 +7,7 @@
 
 #include "git-ws/CommandLine/Parser.h"
 #include "git-ws/CommandLine/ArgBase.h"
+#include "git-ws/CommandLine/ArgPackBase.h"
 #include "git-ws/CommandLine/Arg.h"
 #include "git-ws/CommandLine/OptArg.h"
 #include "git-ws/CommandLine/Flag.h"

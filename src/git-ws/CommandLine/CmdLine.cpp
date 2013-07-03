@@ -9,6 +9,7 @@
 #include "git-ws/CommandLine/Flag.h"
 #include "git-ws/CommandLine/CmdLine.h"
 #include "git-ws/CommandLine/ArgBase.h"
+#include "git-ws/CommandLine/ArgPackBase.h"
 
 using namespace std;
 using namespace ssvu;

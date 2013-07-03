@@ -4,6 +4,7 @@
 
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/ArgBase.h"
+#include "git-ws/CommandLine/ArgPackBase.h"
 #include "git-ws/CommandLine/Arg.h"
 #include "git-ws/CommandLine/Flag.h"
 #include "git-ws/CommandLine/Cmd.h"

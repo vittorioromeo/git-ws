@@ -8,6 +8,7 @@
 #include "git-ws/CommandLine/Cmd.h"
 #include "git-ws/CommandLine/Flag.h"
 #include "git-ws/CommandLine/CmdLine.h"
+#include "git-ws/CommandLine/ArgBase.h"
 
 using namespace std;
 using namespace ssvu;
@@ -50,12 +51,38 @@ namespace ssvcl
 
 		// Remaining string in args must be optargs
 		vector<string> cOptArgs;
-		while(!args.empty())
+		for(unsigned int i{cmd.getOptArgCount()}; i > 0; --i)
 		{
+			if(args.empty()) break;
 			cOptArgs.push_back(args.front());
 			if(cOptArgs.size() > cmd.getOptArgCount()) throw runtime_error("Incorrect number of optargs for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getOptArgCount()) + "'");
 			args.pop_front();
 		}
+
+		// Check for argpacks
+		for(unsigned int i{0}; i < cmd.getArgPackCount(); ++i)
+		{
+			auto& argPack(*cmd.getArgPacks()[i]);
+			vector<string> toPack;
+
+			if(argPack.isInfinite())
+			{
+				if(i != cmd.getArgPackCount() -1) throw runtime_error("Infinite argpacks must be last");
+				while(!args.empty()) { toPack.push_back(args.front()); args.pop_front(); }
+			}
+			else
+			{
+				if(args.size() < argPack.getMin()) throw runtime_error("Not enough args for finite argpack");
+
+				unsigned int clampedCount{getClamped<unsigned int>(args.size(), 0, argPack.getMax())};
+				for(unsigned int iS{0}; iS < clampedCount; ++iS) { toPack.push_back(args.front()); args.pop_front(); }
+			}
+
+			argPack.set(toPack);
+		}
+
+
+		if(!args.empty()) throw runtime_error("Too many arguments!");
 
 		for(unsigned int i{0}; i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
 		for(unsigned int i{0}; i < cOptArgs.size(); ++i) cmd.setOptArgValue(i, cOptArgs[i]);

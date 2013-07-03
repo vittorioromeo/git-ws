@@ -73,14 +73,14 @@ namespace gitws
 				for(const auto& c : cmdLine.getCmds())
 				{
 					log(c->getNamesString(), "Command help");
-					log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString());
+					log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
 					log("");
 				}
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
 			log(c.getNamesString(), "Command help");
-			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString());
+			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
 		};
 	}
 	void GitWs::initCmdPush()
@@ -165,12 +165,29 @@ namespace gitws
 			log("<<AHEAD REPO PATHS (can push)>>", "----");		for(const auto& p : getAheadRepoPaths()) log(p);	log("", "----"); log(""); log("");
 		};
 	}
+	void GitWs::initCmdVarTest()
+	{
+		auto& cmd(cmdLine.create({"vartest"}));
+		auto& argPack(cmd.createFiniteArgPack<int>("numbers to sum", 2, 5));
+		auto& argPack2(cmd.createFiniteArgPack<int>("numbers to mult", 1, 3));
+		auto& argPack3(cmd.createInfiniteArgPack<int>("numbers to subtract"));
+		cmd += [&]
+		{
+			int result = 0;
+			int result2 = 1;
+			int result3 = 0;
+			for(auto& i : argPack.getValues()) result += i;
+			for(auto& i : argPack2.getValues()) result2 *= i;
+			for(auto& i : argPack3.getValues()) result3 -= i;
+			log(toStr(result) + " " + toStr(result2) + " " + toStr(result3));
+		};
+	}
 
 	void GitWs::initRepoPaths()
 	{
 		for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoPaths.push_back(p);
 	}
-	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
+	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); initCmdVarTest(); }
 
 	GitWs::GitWs(const vector<string>& mCommandLine) { initRepoPaths(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
 }

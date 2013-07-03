@@ -2,9 +2,11 @@
 // License: Academic Free License ("AFL") v. 3.0
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
+#include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/ArgBase.h"
 
 using namespace std;
+using namespace ssvu;
 
 namespace ssvcl
 {
@@ -12,5 +14,18 @@ namespace ssvcl
 	ArgBase::~ArgBase() { }
 	const string& ArgBase::getDescription() const { return description; }
 	string ArgBase::getArgString() const { return "(" + description + ")"; }
+
+
+
+	ArgPackBase::ArgPackBase(const string& mDescription) : description{mDescription}, infinite{true} { }
+	ArgPackBase::ArgPackBase(const string& mDescription, unsigned int mMin, unsigned int mMax) : description{mDescription}, infinite{false}, min{mMin}, max{mMax} { }
+	ArgPackBase::~ArgPackBase() { }
+
+	const string& ArgPackBase::getDescription() const { return description; }
+	string ArgPackBase::getArgString() const { return "pack:<(" + description + ")" + "[" + toStr(min) + "/" + (infinite ? "+infinity" : toStr(max)) + "])>"; }
+
+	bool ArgPackBase::isInfinite() const { return infinite; }
+	unsigned int ArgPackBase::getMin() const { return min; }
+	unsigned int ArgPackBase::getMax() const { return max; }
 }
 

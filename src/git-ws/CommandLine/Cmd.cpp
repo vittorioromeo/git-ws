@@ -35,12 +35,15 @@ namespace ssvcl
 	bool Cmd::hasName(const string& mName) const		{ return contains(names, mName); }
 	bool Cmd::isFlagActive(unsigned int mIndex) const	{ return *flags[mIndex]; }
 
-	unsigned int Cmd::getArgCount() const			{ return args.size(); }
-	unsigned int Cmd::getOptArgCount() const		{ return optArgs.size(); }
-	unsigned int Cmd::getFlagCount() const			{ return flags.size(); }
-	const vector<string>& Cmd::getNames() const		{ return names; }
-	const vector<ArgBase*>& Cmd::getArgs() const	{ return args; }
-	const vector<Flag*>& Cmd::getFlags() const		{ return flags; }
+	unsigned int Cmd::getArgCount() const					{ return args.size(); }
+	unsigned int Cmd::getOptArgCount() const				{ return optArgs.size(); }
+	unsigned int Cmd::getArgPackCount() const				{ return argPacks.size(); }
+	unsigned int Cmd::getFlagCount() const					{ return flags.size(); }
+	const vector<string>& Cmd::getNames() const				{ return names; }
+	const vector<ArgBase*>& Cmd::getArgs() const			{ return args; }
+	const vector<ArgBase*>& Cmd::getOptArgs() const			{ return optArgs; }
+	const vector<ArgPackBase*>& Cmd::getArgPacks() const	{ return argPacks; }
+	const vector<Flag*>& Cmd::getFlags() const				{ return flags; }
 
 	string Cmd::getNamesString() const
 	{
@@ -70,6 +73,16 @@ namespace ssvcl
 		{
 			result.append("optional:" + optArgs[i]->getArgString());
 			if(i < optArgs.size() - 1) result.append(" ");
+		}
+		return result;
+	}
+	string Cmd::getArgPacksString() const
+	{
+		string result;
+		for(unsigned int i{0}; i < argPacks.size(); ++i)
+		{
+			result.append(argPacks[i]->getArgString());
+			if(i < argPacks.size() - 1) result.append(" ");
 		}
 		return result;
 	}

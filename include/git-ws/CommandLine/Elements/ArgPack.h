@@ -2,31 +2,15 @@
 // License: Academic Free License ("AFL") v. 3.0
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
-#ifndef GITWS_COMMANDLINE_OPTARG
-#define GITWS_COMMANDLINE_OPTARG
+#ifndef GITWS_COMMANDLINE_ELEMENTS_ARGPACK
+#define GITWS_COMMANDLINE_ELEMENTS_ARGPACK
 
 #include <string>
-#include "git-ws/CommandLine/Parser.h"
-
 #include <vector>
+#include "git-ws/CommandLine/Parser.h"
 
 namespace ssvcl
 {
-	template<typename T> class OptArg : public Arg<T>
-	{
-		private:
-			T defaultValue;
-			bool active{false};
-
-		public:
-			OptArg(T mDefaultValue, const std::string& mDescription) :  Arg<T>{mDescription}, defaultValue{mDefaultValue} { }
-
-			T get() const { return active ? this->value : defaultValue; }
-			void set(const std::string& mValue) override { Arg<T>::set(mValue); active = true; }
-
-			operator bool() const { return active; }
-	};
-
 	template<typename T> class ArgPack : public ArgPackBase
 	{
 		private:
@@ -42,7 +26,16 @@ namespace ssvcl
 			{
 				for(auto& v : mStrings) values.push_back(Parser<T>::parse(v));
 			}
-			const std::vector<T>& getValues() const { return values; }
+
+			typedef typename std::vector<T>::iterator iterator;
+			typedef typename std::vector<T>::const_iterator const_iterator;
+
+			iterator begin()				{ return values.begin(); }
+			const_iterator begin() const	{ return values.begin(); }
+			const iterator cbegin() const	{ return values.cbegin(); }
+			iterator end()					{ return values.end(); }
+			const_iterator end() const		{ return values.end(); }
+			const iterator cend() const		{ return values.cend(); }
 	};
 }
 

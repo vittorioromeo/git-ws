@@ -176,9 +176,9 @@ namespace gitws
 			int result = 0;
 			int result2 = 1;
 			int result3 = 0;
-			for(auto& i : argPack.getValues()) result += i;
-			for(auto& i : argPack2.getValues()) result2 *= i;
-			for(auto& i : argPack3.getValues()) result3 -= i;
+			for(auto& i : argPack) result += i;
+			for(auto& i : argPack2) result2 *= i;
+			for(auto& i : argPack3) result3 -= i;
 			log(toStr(result) + " " + toStr(result2) + " " + toStr(result3));
 		};
 	}

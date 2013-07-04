@@ -3,7 +3,7 @@
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
 #include <SSVUtils/SSVUtils.h>
-#include "git-ws/CommandLine/ArgPackBase.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgPackBase.h"
 
 using namespace std;
 using namespace ssvu;

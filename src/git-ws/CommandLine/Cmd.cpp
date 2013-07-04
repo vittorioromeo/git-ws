@@ -3,10 +3,10 @@
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
 #include <SSVUtils/SSVUtils.h>
-#include "git-ws/CommandLine/ArgBase.h"
-#include "git-ws/CommandLine/ArgPackBase.h"
-#include "git-ws/CommandLine/Arg.h"
-#include "git-ws/CommandLine/Flag.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgBase.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgPackBase.h"
+#include "git-ws/CommandLine/Elements/Arg.h"
+#include "git-ws/CommandLine/Elements/Flag.h"
 #include "git-ws/CommandLine/Cmd.h"
 
 using namespace std;

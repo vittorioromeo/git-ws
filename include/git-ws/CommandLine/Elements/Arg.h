@@ -2,8 +2,8 @@
 // License: Academic Free License ("AFL") v. 3.0
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
-#ifndef GITWS_COMMANDLINE_ARG
-#define GITWS_COMMANDLINE_ARG
+#ifndef GITWS_COMMANDLINE_ELEMENTS_ARG
+#define GITWS_COMMANDLINE_ELEMENTS_ARG
 
 #include <string>
 #include "git-ws/CommandLine/Parser.h"

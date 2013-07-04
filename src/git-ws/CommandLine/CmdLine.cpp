@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/Cmd.h"
-#include "git-ws/CommandLine/Flag.h"
+#include "git-ws/CommandLine/Elements/Flag.h"
 #include "git-ws/CommandLine/CmdLine.h"
-#include "git-ws/CommandLine/ArgBase.h"
-#include "git-ws/CommandLine/ArgPackBase.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgBase.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgPackBase.h"
 
 using namespace std;
 using namespace ssvu;

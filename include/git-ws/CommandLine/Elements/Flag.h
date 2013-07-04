@@ -2,8 +2,8 @@
 // License: Academic Free License ("AFL") v. 3.0
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
-#ifndef GITWS_COMMANDLINE_FLAG
-#define GITWS_COMMANDLINE_FLAG
+#ifndef GITWS_COMMANDLINE_ELEMENTS_FLAG
+#define GITWS_COMMANDLINE_ELEMENTS_FLAG
 
 #include <string>
 

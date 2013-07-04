@@ -6,31 +6,34 @@
 #define GITWS_COMMANDLINE_ELEMENTS_FLAG
 
 #include <string>
+#include "git-ws/CommandLine/Elements/Bases/ElementBase.h"
 
 namespace ssvcl
 {
 	const std::string flagPrefixShort{"-"};
 	const std::string flagPrefixLong{"--"};
 
-	class Flag
+	class Flag : public ElementBase
 	{
 		private:
 			std::string shortName, longName;
 			bool active{false};
 
 		public:
-			Flag(const std::string& mShortName, const std::string& mLongName);
+			Flag(const std::string& mShortName, const std::string& mLongName) : shortName{mShortName}, longName{mLongName} { }
 
-			Flag& operator=(bool mActive);
-			operator bool() const;
+			inline Flag& operator=(bool mActive)	{ active = mActive; return *this; }
+			inline operator bool() const			{ return active; }
 
-			bool hasName(const std::string& mName) const;
-
-			const std::string& getShortName() const;
-			const std::string& getLongName() const;
-			std::string getShortNameWithPrefix() const;
-			std::string getLongNameWithPrefix() const;
-			std::string getFlagString() const;
+			inline const std::string& getShortName() const		{ return shortName; }
+			inline const std::string& getLongName() const		{ return longName; }
+			inline std::string getShortNameWithPrefix() const	{ return flagPrefixShort + shortName; }
+			inline std::string getLongNameWithPrefix() const	{ return flagPrefixLong + longName; }
+			inline bool hasName(const std::string& mName) const	{ return mName == getShortNameWithPrefix() || mName == getLongNameWithPrefix(); }
+			inline std::string getUsageString() const override
+			{
+				return "[" + getShortNameWithPrefix() + " || " + getLongNameWithPrefix() + "]";
+			}
 	};
 }
 

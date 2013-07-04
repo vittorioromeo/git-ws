@@ -6,21 +6,21 @@
 #define GITWS_COMMANDLINE_ELEMENTS_BASES_ARGBASE
 
 #include <string>
+#include "git-ws/CommandLine/Elements/Bases/ElementBase.h"
 
 namespace ssvcl
 {
-	class ArgBase
+	class ArgBase : public ElementBase
 	{
-		private:
-			std::string description;
-
 		public:
-			ArgBase(const std::string& mDescription);
-			virtual ~ArgBase();
+			virtual ~ArgBase() { }
 
 			virtual void set(const std::string& mString) = 0;
-			const std::string& getDescription() const;
-			std::string getArgString() const;
+
+			inline std::string getUsageString() const override
+			{
+				return "(" + getDescription() + ")";
+			}
 	};
 }
 

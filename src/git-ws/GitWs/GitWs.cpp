@@ -62,7 +62,7 @@ namespace gitws
 	void GitWs::initCmdHelp()
 	{
 		auto& cmd(cmdLine.create({"?", "help"}));
-		auto& optArg(cmd.createOptArg<string>("", "command name"));
+		auto& optArg(cmd.createOptArg<string>(""));
 		cmd += [&]
 		{
 			if(!optArg)
@@ -110,7 +110,7 @@ namespace gitws
 	void GitWs::initCmdSubmodule()
 	{
 		auto& cmd(cmdLine.create({"sub", "submodule"}));
-		auto& arg(cmd.createArg<string>("submodule action"));
+		auto& arg(cmd.createArg<string>());
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
 		cmd += [&]
 		{
@@ -143,7 +143,7 @@ namespace gitws
 	void GitWs::initCmdDo()
 	{
 		auto& cmd(cmdLine.create({"do"}));
-		auto& arg(cmd.createArg<string>("command to execute"));
+		auto& arg(cmd.createArg<string>());
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
 		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
 		cmd += [&]
@@ -168,9 +168,9 @@ namespace gitws
 	void GitWs::initCmdVarTest()
 	{
 		auto& cmd(cmdLine.create({"vartest"}));
-		auto& argPack(cmd.createFiniteArgPack<int>("numbers to sum", 2, 5));
-		auto& argPack2(cmd.createFiniteArgPack<int>("numbers to mult", 1, 3));
-		auto& argPack3(cmd.createInfiniteArgPack<int>("numbers to subtract"));
+		auto& argPack(cmd.createFiniteArgPack<int>(2, 5));
+		auto& argPack2(cmd.createFiniteArgPack<int>(1, 3));
+		auto& argPack3(cmd.createInfiniteArgPack<int>());
 		cmd += [&]
 		{
 			int result = 0;

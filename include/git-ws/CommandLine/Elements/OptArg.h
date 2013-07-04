@@ -17,12 +17,13 @@ namespace ssvcl
 			bool active{false};
 
 		public:
-			OptArg(T mDefaultValue, const std::string& mDescription) :  Arg<T>{mDescription}, defaultValue{mDefaultValue} { }
+			OptArg(T mDefaultValue) : defaultValue{mDefaultValue} { }
 
-			T get() const { return active ? this->value : defaultValue; }
-			void set(const std::string& mValue) override { Arg<T>::set(mValue); active = true; }
+			inline operator bool() const { return active; }
 
-			operator bool() const { return active; }
+			inline void set(const std::string& mValue) override { Arg<T>::set(mValue); active = true; }
+
+			inline T get() const { return active ? get() : defaultValue; }
 	};
 }
 

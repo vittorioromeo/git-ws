@@ -37,11 +37,11 @@ namespace ssvcl
 			Cmd& operator+=(std::function<void()> mFunc);
 			Cmd& operator()();
 
-			template<typename T> Arg<T>& createArg(const std::string& mDescription) { auto result(new Arg<T>(mDescription)); args.push_back(result); return *result; }
-			template<typename T> OptArg<T>& createOptArg(T mDefaultValue, const std::string& mDescription) { auto result(new OptArg<T>(mDefaultValue, mDescription)); optArgs.push_back(result); return *result; }
+			template<typename T> Arg<T>& createArg() { auto result(new Arg<T>()); args.push_back(result); return *result; }
+			template<typename T> OptArg<T>& createOptArg(T mDefaultValue) { auto result(new OptArg<T>(mDefaultValue)); optArgs.push_back(result); return *result; }
 			Flag& createFlag(const std::string& mShortName, const std::string& mLongName);
-			template<typename T> ArgPack<T>& createFiniteArgPack(const std::string& mDescription, unsigned int mMin, unsigned int mMax) { auto result(new ArgPack<T>(mDescription, mMin, mMax)); argPacks.push_back(result); return *result; }
-			template<typename T> ArgPack<T>& createInfiniteArgPack(const std::string& mDescription) { auto result(new ArgPack<T>(mDescription)); argPacks.push_back(result); return *result; }
+			template<typename T> ArgPack<T>& createFiniteArgPack(unsigned int mMin, unsigned int mMax) { auto result(new ArgPack<T>(mMin, mMax)); argPacks.push_back(result); return *result; }
+			template<typename T> ArgPack<T>& createInfiniteArgPack() { auto result(new ArgPack<T>); argPacks.push_back(result); return *result; }
 
 			void setArgValue(unsigned int mIndex, const std::string& mValue);
 			void setOptArgValue(unsigned int mIndex, const std::string& mValue);

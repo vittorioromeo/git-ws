@@ -7,28 +7,31 @@
 
 #include <string>
 #include <vector>
+#include <SSVUtils/SSVUtils.h>
+#include "git-ws/CommandLine/Elements/Bases/ElementBase.h"
 
 namespace ssvcl
 {
-	class ArgPackBase
+	class ArgPackBase : public ElementBase
 	{
 		private:
-			std::string description;
 			bool infinite;
 			unsigned int min, max;
 
 		public:
-			ArgPackBase(const std::string& mDescription);
-			ArgPackBase(const std::string& mDescription, unsigned int mMin, unsigned int mMax);
-			virtual ~ArgPackBase();
+			ArgPackBase() : infinite{true} { }
+			ArgPackBase(unsigned int mMin, unsigned int mMax) : infinite{false}, min{mMin}, max{mMax} { }
+			virtual ~ArgPackBase() { }
 
 			virtual void set(const std::vector<std::string>& mStrings) = 0;
-			const std::string& getDescription() const;
-			std::string getArgString() const;
 
-			bool isInfinite() const;
-			unsigned int getMin() const;
-			unsigned int getMax() const;
+			inline bool isInfinite() const { return infinite; }
+			inline unsigned int getMin() const { return min; }
+			inline unsigned int getMax() const { return max; }
+			inline std::string getUsageString() const override
+			{
+				return "pack:<(" + getDescription() + ")" + "[" + ssvu::toStr(min) + "/" + (infinite ? "+infinity" : ssvu::toStr(max)) + "])>";
+			}
 	};
 }
 

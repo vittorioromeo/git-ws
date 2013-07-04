@@ -62,7 +62,7 @@ namespace ssvcl
 		string result;
 		for(unsigned int i{0}; i < args.size(); ++i)
 		{
-			result.append(args[i]->getArgString());
+			result.append(args[i]->getUsageString());
 			if(i < args.size() - 1) result.append(" ");
 		}
 		return result;
@@ -72,7 +72,7 @@ namespace ssvcl
 		string result;
 		for(unsigned int i{0}; i < optArgs.size(); ++i)
 		{
-			result.append("optional:" + optArgs[i]->getArgString());
+			result.append("optional:" + optArgs[i]->getUsageString());
 			if(i < optArgs.size() - 1) result.append(" ");
 		}
 		return result;
@@ -82,7 +82,7 @@ namespace ssvcl
 		string result;
 		for(unsigned int i{0}; i < argPacks.size(); ++i)
 		{
-			result.append(argPacks[i]->getArgString());
+			result.append(argPacks[i]->getUsageString());
 			if(i < argPacks.size() - 1) result.append(" ");
 		}
 		return result;
@@ -92,7 +92,7 @@ namespace ssvcl
 		string result;
 		for(unsigned int i{0}; i < flags.size(); ++i)
 		{
-			result.append(flags[i]->getFlagString());
+			result.append(flags[i]->getUsageString());
 			if(i < flags.size() - 1) result.append(" ");
 		}
 		return result;

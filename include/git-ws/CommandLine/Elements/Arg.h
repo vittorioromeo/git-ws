@@ -16,10 +16,8 @@ namespace ssvcl
 			T value;
 
 		public:
-			Arg(const std::string& mDescription) : ArgBase{mDescription} { }
-
-			T get() const { return value; }
-			void set(const std::string& mValue) override { value = Parser<T>::parse(mValue); }
+			inline T get() const { return value; }
+			inline void set(const std::string& mValue) override { value = Parser<T>::parse(mValue); }
 	};
 }
 

@@ -27,6 +27,7 @@ namespace ssvcl
 			std::vector<ArgPackBase*> argPacks; // owned
 			std::vector<Flag*> flags; // owned
 			std::function<void()> func;
+			std::string description;
 
 			Flag& findFlag(const std::string& mName);
 
@@ -69,6 +70,9 @@ namespace ssvcl
 			std::string getFlagsString() const;
 
 			std::string getHelpString() const;
+
+			inline void setDescription(const std::string& mDescription)	{ description = mDescription; }
+			inline const std::string& getDescription() const			{ return description; }
 	};
 }
 

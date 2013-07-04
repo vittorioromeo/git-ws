@@ -108,6 +108,12 @@ namespace ssvcl
 	{
 		string result;
 
+		if(!description.empty())
+		{
+			result += ">>" + description;
+			result += "\n\n";
+		}
+
 		if(!args.empty()) result += "\t" "Required arguments:" "\n";
 		for(const auto& a : args) result += a->getHelpString();
 		if(!args.empty()) result += "\n";
@@ -122,7 +128,6 @@ namespace ssvcl
 
 		if(!flags.empty()) result += "\t" "Flags:" "\n";
 		for(const auto& f : flags) result += f->getHelpString();
-		if(!flags.empty()) result += "\n";
 
 		return result;
 	}

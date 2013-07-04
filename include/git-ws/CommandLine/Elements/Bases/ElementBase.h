@@ -31,12 +31,14 @@ namespace ssvcl
 			{
 				std::string result;
 
-				if(!name.empty()) result += "\t" + name;
-				if(!briefDescription.empty()) result += "\n" + briefDescription;
-				if(!description.empty()) result += "\n" + description;
-
 				std::string usageString{this->getUsageString()};
-				if(!usageString.empty()) result += "\n" + usageString;
+				if(!usageString.empty()) result += "* " + usageString;
+
+				if(!name.empty()) result += "\n  --" + name;
+				if(!briefDescription.empty()) result += "\n  --" + briefDescription;
+				if(!description.empty()) result += "\n  --" + description;
+
+				result += "\n\n";
 
 				return result;
 			}

@@ -30,7 +30,7 @@ namespace ssvcl
 			inline unsigned int getMax() const { return max; }
 			inline std::string getUsageString() const override
 			{
-				return "pack:<(" + getDescription() + ")" + "[" + ssvu::toStr(min) + "/" + (infinite ? "+infinity" : ssvu::toStr(max)) + "])>";
+				return "(PACK " + getName() + " " + "[" + ssvu::toStr(min) + "/" + (infinite ? "..." : ssvu::toStr(max)) + "])";
 			}
 	};
 }

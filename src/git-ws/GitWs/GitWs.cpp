@@ -62,7 +62,16 @@ namespace gitws
 	void GitWs::initCmdHelp()
 	{
 		auto& cmd(cmdLine.create({"?", "help"}));
+		cmd.setDescription("Show help for all commands or a single command.");
+
 		auto& optArg(cmd.createOptArg<string>(""));
+		optArg.setName("Command name");
+		optArg.setBriefDescription("Name of the command to get help for.");
+		optArg.setDescription("Leave blank to get general help.");
+
+		auto& flagVerbose(cmd.createFlag("v", "verbose"));
+		flagVerbose.setBriefDescription("Verbose general help?");
+
 		cmd += [&]
 		{
 			if(!optArg)
@@ -70,25 +79,44 @@ namespace gitws
 				log("Git-ws help");
 				log("");
 
-				for(const auto& c : cmdLine.getCmds())
+				if(!flagVerbose)
 				{
-					log(c->getNamesString(), "Command help");
-					log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
-					log("");
+					for(const auto& c : cmdLine.getCmds())
+					{
+						log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
+						log("");
+					}
+				}
+				else
+				{
+					for(const auto& c : cmdLine.getCmds())
+					{
+						log("");
+						log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
+						log("");
+						log(c->getHelpString());
+					}
 				}
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
-			log(c.getNamesString(), "Command help");
-			log(c.getHelpString());
+			log("");
 			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
+			log("");
+			log(c.getHelpString());
 		};
 	}
 	void GitWs::initCmdPush()
 	{
 		auto& cmd(cmdLine.create({"push"}));
+		cmd.setDescription("Pushes every git repo.");
+
 		auto& flagForce(cmd.createFlag("f", "force"));
+		flagForce.setBriefDescription("Forced pull?");
+
 		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
+		flagAhead.setBriefDescription("Run the command only in folders where repos are ahead of the remote?");
+
 		cmd += [&]
 		{
 			runShInRepos(flagAhead ? getAheadRepoPaths() : repoPaths, flagForce ? "git push -f" : "git push");
@@ -97,9 +125,17 @@ namespace gitws
 	void GitWs::initCmdPull()
 	{
 		auto& cmd(cmdLine.create({"pull"}));
+		cmd.setDescription("Pulls every git repo.");
+
 		auto& flagStash(cmd.createFlag("s", "stash"));
+		flagStash.setBriefDescription("Stash all changes before pulling?");
+
 		auto& flagForce(cmd.createFlag("f", "force-checkout"));
+		flagForce.setBriefDescription("Run a force checkout before pulling?");
+
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		flagChanged.setBriefDescription("Run the command only in folders where repos have changes?");
+
 		cmd += [&]
 		{
 			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
@@ -111,8 +147,16 @@ namespace gitws
 	void GitWs::initCmdSubmodule()
 	{
 		auto& cmd(cmdLine.create({"sub", "submodule"}));
+		cmd.setDescription("Work with git submodules in every repo.");
+
 		auto& arg(cmd.createArg<string>());
+		arg.setName("Action");
+		arg.setBriefDescription("Action to run for every submodule. Can be 'push', 'pull' or 'au'.");
+		arg.setDescription("'push' commits all changes in the repo and pushes them to the remote. Do not run this unless all non-submodule changes have been taken care of!\n'pull' recursively pulls the latest submodules from the remote.\n'au' calls 'pull' then 'push' in succession.");
+
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		flagChanged.setBriefDescription("Run the command only in folders where repos have changes?");
+
 		cmd += [&]
 		{
 			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
@@ -128,13 +172,21 @@ namespace gitws
 	void GitWs::initCmdStatus()
 	{
 		auto& cmd(cmdLine.create({"st", "status"}));
+		cmd.setDescription("Prints the status of all repos.");
+
 		auto& showAllFlag(cmd.createFlag("a", "showall"));
+		showAllFlag.setBriefDescription("Print empty messages?");
+
 		cmd += [&]{ runShInRepos(repoPaths, "git status -s --ignore-submodules=dirty", showAllFlag); };
 	}
 	void GitWs::initCmdGitg()
 	{
 		auto& cmd(cmdLine.create({"gitg"}));
+		cmd.setDescription("Open the gitg gui application in every repo folder.");
+
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		flagChanged.setBriefDescription("Open gitg only in folders where repos have changes?");
+
 		cmd += [&]
 		{
 			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
@@ -144,9 +196,19 @@ namespace gitws
 	void GitWs::initCmdDo()
 	{
 		auto& cmd(cmdLine.create({"do"}));
+		cmd.setDescription("Runs a shell command in every repo folder.");
+
 		auto& arg(cmd.createArg<string>());
+		arg.setName("Command to run");
+		arg.setBriefDescription("This is the command that will be called in every repo folder.");
+		arg.setDescription("Consider wrapping a more complex command with quotes.");
+
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
+		flagChanged.setBriefDescription("Run the command only in folders where repos have changes?");
+
 		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
+		flagAhead.setBriefDescription("Run the command only in folders where repos are ahead of the remote?");
+
 		cmd += [&]
 		{
 			if(flagChanged && flagAhead) { log("-c and -a are mutually exclusive"); return; }
@@ -159,7 +221,9 @@ namespace gitws
 	}
 	void GitWs::initCmdQuery()
 	{
-		cmdLine.create({"query"}) += [&]
+		auto& cmd(cmdLine.create({"query"}));
+		cmd.setDescription("Queries the status of all the repos, returning whether they are changed or ahead.");
+		cmd += [&]
 		{
 			log("<<ALL REPO PATHS>>", "----");					for(const auto& p : repoPaths) log(p);				log("", "----"); log(""); log("");
 			log("<<CHANGED REPO PATHS (can commit)>>", "----");	for(const auto& p : getChangedRepoPaths()) log(p);	log("", "----"); log(""); log("");
@@ -192,7 +256,7 @@ namespace gitws
 	{
 		for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoPaths.push_back(p);
 	}
-	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); initCmdVarTest(); }
+	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); /*initCmdVarTest();*/ }
 
 	GitWs::GitWs(const vector<string>& mCommandLine) { initRepoPaths(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
 }

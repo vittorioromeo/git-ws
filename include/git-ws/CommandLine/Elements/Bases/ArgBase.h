@@ -19,7 +19,7 @@ namespace ssvcl
 
 			inline std::string getUsageString() const override
 			{
-				return "(" + getDescription() + ")";
+				return "(ARG " + getName() + ")";
 			}
 	};
 }

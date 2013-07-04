@@ -24,6 +24,11 @@ namespace ssvcl
 			inline void set(const std::string& mValue) override { Arg<T>::set(mValue); active = true; }
 
 			inline T get() const { return active ? Arg<T>::get() : defaultValue; }
+
+			inline std::string getUsageString() const override
+			{
+				return "(OPTARG " + ElementBase::getName() + ")";
+			}
 	};
 }
 

@@ -78,7 +78,7 @@ namespace ssvcl
 		string result;
 		for(unsigned int i{0}; i < optArgs.size(); ++i)
 		{
-			result.append("optional:" + optArgs[i]->getUsageString());
+			result.append(optArgs[i]->getUsageString());
 			if(i < optArgs.size() - 1) result.append(" ");
 		}
 		return result;

@@ -32,6 +32,7 @@ namespace gitws
 			void initCmdGitg();
 			void initCmdDo();
 			void initCmdQuery();
+			void initCmdVarTest();
 
 			void initRepoPaths();
 			void initCmds();

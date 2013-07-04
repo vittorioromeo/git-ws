@@ -6,10 +6,12 @@
 #define GITWS_COMMANDLINE
 
 #include "git-ws/CommandLine/Parser.h"
-#include "git-ws/CommandLine/ArgBase.h"
-#include "git-ws/CommandLine/Arg.h"
-#include "git-ws/CommandLine/OptArg.h"
-#include "git-ws/CommandLine/Flag.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgBase.h"
+#include "git-ws/CommandLine/Elements/Bases/ArgPackBase.h"
+#include "git-ws/CommandLine/Elements/Arg.h"
+#include "git-ws/CommandLine/Elements/OptArg.h"
+#include "git-ws/CommandLine/Elements/ArgPack.h"
+#include "git-ws/CommandLine/Elements/Flag.h"
 #include "git-ws/CommandLine/Cmd.h"
 #include "git-ws/CommandLine/CmdLine.h"
 

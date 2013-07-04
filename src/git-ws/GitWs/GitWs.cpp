@@ -80,7 +80,7 @@ namespace gitws
 
 			auto& c(cmdLine.findCmd(optArg.get()));
 			log(c.getNamesString(), "Command help");
-			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
+			log(c.getHelpString());
 		};
 	}
 	void GitWs::initCmdPush()
@@ -169,6 +169,10 @@ namespace gitws
 	{
 		auto& cmd(cmdLine.create({"vartest"}));
 		auto& argPack(cmd.createFiniteArgPack<int>(2, 5));
+		argPack.setName("Numbers to add");
+		argPack.setBriefDescription("This is an argument pack, min2 max5, of numbers to add.");
+		argPack.setDescription(R"(ites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 a)");
+
 		auto& argPack2(cmd.createFiniteArgPack<int>(1, 3));
 		auto& argPack3(cmd.createInfiniteArgPack<int>());
 		cmd += [&]

@@ -21,7 +21,13 @@ namespace ssvcl
 	}
 
 	Cmd::Cmd(const initializer_list<string>& mNames) : names{mNames} { }
-	Cmd::~Cmd() { for(const auto& a : args) delete a; for(const auto& a : optArgs) delete a; for(const auto& f : flags) delete f; }
+	Cmd::~Cmd()
+	{
+		for(const auto& a : args) delete a;
+		for(const auto& a : optArgs) delete a;
+		for(const auto& p : argPacks) delete p;
+		for(const auto& f : flags) delete f;
+	}
 
 	Cmd& Cmd::operator()() { func(); return *this; }
 	Cmd& Cmd::operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
@@ -95,6 +101,29 @@ namespace ssvcl
 			result.append(flags[i]->getUsageString());
 			if(i < flags.size() - 1) result.append(" ");
 		}
+		return result;
+	}
+
+	string Cmd::getHelpString() const
+	{
+		string result;
+
+		if(!args.empty()) result += "\t" "Required arguments:" "\n";
+		for(const auto& a : args) result += a->getHelpString();
+		if(!args.empty()) result += "\n";
+
+		if(!optArgs.empty()) result += "\t" "Optional arguments:" "\n";
+		for(const auto& a : optArgs) result += a->getHelpString();
+		if(!optArgs.empty()) result += "\n";
+
+		if(!argPacks.empty()) result += "\t" "Argument packs:" "\n";
+		for(const auto& p : argPacks) result += p->getHelpString();
+		if(!argPacks.empty()) result += "\n";
+
+		if(!flags.empty()) result += "\t" "Flags:" "\n";
+		for(const auto& f : flags) result += f->getHelpString();
+		if(!flags.empty()) result += "\n";
+
 		return result;
 	}
 }

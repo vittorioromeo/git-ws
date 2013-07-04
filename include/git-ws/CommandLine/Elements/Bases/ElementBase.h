@@ -12,15 +12,34 @@ namespace ssvcl
 	class ElementBase
 	{
 		private:
+			std::string name;
+			std::string briefDescription;
 			std::string description;
 
 		public:
 			virtual ~ElementBase() { }
 
-			inline void setDescription(const std::string& mDescription) { description = mDescription; }
+			inline void setName(const std::string& mName)							{ name = mName; }
+			inline void setBriefDescription(const std::string& mBriefDescription)	{ briefDescription = mBriefDescription; }
+			inline void setDescription(const std::string& mDescription)				{ description = mDescription; }
 
-			inline const std::string& getDescription() const { return description; }
-			inline virtual std::string getUsageString() const = 0;
+			inline const std::string& getName() const				{ return name; }
+			inline const std::string& getBriefDescription() const	{ return briefDescription; }
+			inline const std::string& getDescription() const		{ return description; }
+			inline virtual std::string getUsageString() const		{ return ""; }
+			inline std::string getHelpString()
+			{
+				std::string result;
+
+				if(!name.empty()) result += "\t" + name;
+				if(!briefDescription.empty()) result += "\n" + briefDescription;
+				if(!description.empty()) result += "\n" + description;
+
+				std::string usageString{this->getUsageString()};
+				if(!usageString.empty()) result += "\n" + usageString;
+
+				return result;
+			}
 	};
 }
 

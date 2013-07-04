@@ -67,6 +67,8 @@ namespace ssvcl
 			std::string getOptArgsString() const;
 			std::string getArgPacksString() const;
 			std::string getFlagsString() const;
+
+			std::string getHelpString() const;
 	};
 }
 

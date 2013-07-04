@@ -81,6 +81,7 @@ namespace gitws
 			auto& c(cmdLine.findCmd(optArg.get()));
 			log(c.getNamesString(), "Command help");
 			log(c.getHelpString());
+			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
 		};
 	}
 	void GitWs::initCmdPush()

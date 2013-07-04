@@ -36,6 +36,119 @@ sudo ldconfig /usr/local/lib
 
 Using `git-ws` in a directory calls git commands in all subdirectiories which are git repositories.
 
+Auto generated help
+```bash
+<? || help>  (OPTARG Command name) [-v || --verbose] 
+
+>>Show help for all commands or a single command.
+
+	Optional arguments:
+* (OPTARG Command name)
+  --Command name
+  --Name of the command to get help for.
+  --Leave blank to get general help.
+
+
+	Flags:
+* [-v || --verbose]
+  --Verbose general help?
+
+
+
+<push>   [-f || --force] [-a || --ahead-only] 
+
+>>Pushes every git repo.
+
+	Flags:
+* [-f || --force]
+  --Forced pull?
+
+* [-a || --ahead-only]
+  --Run the command only in folders where repos are ahead of the remote?
+
+
+
+<pull>   [-s || --stash] [-f || --force-checkout] [-c || --changed-only] 
+
+>>Pulls every git repo.
+
+	Flags:
+* [-s || --stash]
+  --Stash all changes before pulling?
+
+* [-f || --force-checkout]
+  --Run a force checkout before pulling?
+
+* [-c || --changed-only]
+  --Run the command only in folders where repos have changes?
+
+
+
+<sub || submodule> (ARG Action)  [-c || --changed-only] 
+
+>>Work with git submodules in every repo.
+
+	Required arguments:
+* (ARG Action)
+  --Action
+  --Action to run for every submodule. Can be 'push', 'pull' or 'au'.
+  --'push' commits all changes in the repo and pushes them to the remote. Do not run this unless all non-submodule changes have been taken care of!
+'pull' recursively pulls the latest submodules from the remote.
+'au' calls 'pull' then 'push' in succession.
+
+
+	Flags:
+* [-c || --changed-only]
+  --Run the command only in folders where repos have changes?
+
+
+
+<st || status>   [-a || --showall] 
+
+>>Prints the status of all repos.
+
+	Flags:
+* [-a || --showall]
+  --Print empty messages?
+
+
+
+<gitg>   [-c || --changed-only] 
+
+>>Open the gitg gui application in every repo folder.
+
+	Flags:
+* [-c || --changed-only]
+  --Open gitg only in folders where repos have changes?
+
+
+
+<do> (ARG Command to run)  [-c || --changed-only] [-a || --ahead-only] 
+
+>>Runs a shell command in every repo folder.
+
+	Required arguments:
+* (ARG Command to run)
+  --Command to run
+  --This is the command that will be called in every repo folder.
+  --Consider wrapping a more complex command with quotes.
+
+
+	Flags:
+* [-c || --changed-only]
+  --Run the command only in folders where repos have changes?
+
+* [-a || --ahead-only]
+  --Run the command only in folders where repos are ahead of the remote?
+
+
+
+<query>    
+
+>>Queries the status of all the repos, returning whether they are changed or ahead.
+
+```
+
 * `git-ws ?`: displays auto-generated help for all commands
 * `git-ws ? (command name)`: displays auto-generated help for a command
 * `git-ws query`: displays all repos detected by git-ws

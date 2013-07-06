@@ -119,7 +119,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			runShInRepos(flagAhead ? getAheadRepoPaths() : repoPaths, flagForce ? "git push -f" : "git push");
+			runShInRepos(flagAhead ? getAheadRepoPaths() : repoPaths, flagForce ? "git push --all -f" : "git push --all");
 		};
 	}
 	void GitWs::initCmdPull()

@@ -17,31 +17,18 @@ find_package(SSVUtilsJson REQUIRED)
 
 set(SRC_DIR "src")
 set(INC_DIR "include")
-
-file(GLOB SRC_LIST
-	"${INC_DIR}/${PROJECT_NAME}/*.h"
-	"${SRC_DIR}/${PROJECT_NAME}/*.cpp"
-	"${INC_DIR}/${PROJECT_NAME}/CommandLine/*.h"
-	"${SRC_DIR}/${PROJECT_NAME}/CommandLine/*.cpp"
-	"${INC_DIR}/${PROJECT_NAME}/CommandLine/Elements/*.h"
-	"${SRC_DIR}/${PROJECT_NAME}/CommandLine/Elements/*.cpp"
-	"${INC_DIR}/${PROJECT_NAME}/CommandLine/Elements/Bases/*.h"
-	"${SRC_DIR}/${PROJECT_NAME}/CommandLine/Elements/Bases/*.cpp"
-	"${INC_DIR}/${PROJECT_NAME}/GitWs/*.h"
-	"${SRC_DIR}/${PROJECT_NAME}/GitWs/*.cpp"
-)
+file(GLOB_RECURSE SRC_LIST "${INC_DIR}/*" "${SRC_DIR}/*")
 
 include_directories(${INC_DIR})
 include_directories(${SSVJSONCPP_INCLUDE_DIR})
 include_directories(${SSVUTILS_INCLUDE_DIR})
 include_directories(${SSVUTILSJSON_INCLUDE_DIR})
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-target_link_libraries(git-ws ${SSVJSONCPP_LIBRARY})
-target_link_libraries(git-ws ${SSVUTILS_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${SSVJSONCPP_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${SSVUTILS_LIBRARY})
+
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/_RELEASE/)
 
 if(UNIX)
-	install(TARGETS git-ws RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/_RELEASE/)
 	install(PROGRAMS ${CMAKE_SOURCE_DIR}/_RELEASE/git-ws DESTINATION /usr/local/bin/ PERMISSIONS WORLD_EXECUTE WORLD_READ)
-else(WIN32)
-	install(TARGETS git-ws RUNTIME DESTINATION ./_RELEASE/)
 endif()

@@ -21,18 +21,11 @@ namespace ssvcl
 	}
 
 	Cmd::Cmd(const initializer_list<string>& mNames) : names{mNames} { }
-	Cmd::~Cmd()
-	{
-		for(const auto& a : args) delete a;
-		for(const auto& a : optArgs) delete a;
-		for(const auto& p : argPacks) delete p;
-		for(const auto& f : flags) delete f;
-	}
 
 	Cmd& Cmd::operator()() { func(); return *this; }
 	Cmd& Cmd::operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
 
-	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(result); return *result; }
+	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(unique_ptr<Flag>(result)); return *result; }
 
 	void Cmd::setArgValue(unsigned int mIndex, const string& mValue)	{ args[mIndex]->set(mValue); }
 	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue)	{ optArgs[mIndex]->set(mValue); }
@@ -41,16 +34,6 @@ namespace ssvcl
 
 	bool Cmd::hasName(const string& mName) const		{ return contains(names, mName); }
 	bool Cmd::isFlagActive(unsigned int mIndex) const	{ return *flags[mIndex]; }
-
-	unsigned int Cmd::getArgCount() const					{ return args.size(); }
-	unsigned int Cmd::getOptArgCount() const				{ return optArgs.size(); }
-	unsigned int Cmd::getArgPackCount() const				{ return argPacks.size(); }
-	unsigned int Cmd::getFlagCount() const					{ return flags.size(); }
-	const vector<string>& Cmd::getNames() const				{ return names; }
-	const vector<ArgBase*>& Cmd::getArgs() const			{ return args; }
-	const vector<ArgBase*>& Cmd::getOptArgs() const			{ return optArgs; }
-	const vector<ArgPackBase*>& Cmd::getArgPacks() const	{ return argPacks; }
-	const vector<Flag*>& Cmd::getFlags() const				{ return flags; }
 
 	string Cmd::getNamesString() const
 	{

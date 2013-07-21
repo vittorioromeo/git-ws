@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <iomanip>
 #include "git-ws/GitWs/GitWs.h"
 
 using namespace std;
@@ -13,21 +14,22 @@ using namespace ssvcl;
 
 namespace gitws
 {
-	vector<string> GitWs::getAheadRepoPaths()
+	vector<string> GitWs::getAllRepoPaths()
 	{
 		vector<string> result;
-		for(const auto& p : repoPaths)
-		{
-			bool isAhead{false};
-			for(auto& f : runShInPath(p, "git status -sb")) if(f.find("ahead") != string::npos) { isAhead = true; break; }
-			if(isAhead) result.push_back(p);
-		}
+		for(const auto& rd : repoDatas) result.push_back(rd.path);
 		return result;
 	}
 	vector<string> GitWs::getChangedRepoPaths()
 	{
 		vector<string> result;
-		for(const auto& p : repoPaths) if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) result.push_back(p);
+		for(const auto& rd : repoDatas) if(rd.canCommit) result.push_back(rd.path);
+		return result;
+	}
+	vector<string> GitWs::getAheadRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& rd : repoDatas) if(rd.canPush) result.push_back(rd.path);
 		return result;
 	}
 
@@ -112,14 +114,23 @@ namespace gitws
 		cmd.setDescription("Pushes every git repo.");
 
 		auto& flagForce(cmd.createFlag("f", "force"));
-		flagForce.setBriefDescription("Forced pull?");
+		flagForce.setBriefDescription("Forced push?");
 
-		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
-		flagAhead.setBriefDescription("Run the command only in folders where repos are ahead of the remote?");
+		auto& flagAll(cmd.createFlag("a", "all"));
+		flagAll.setBriefDescription("Run the command in all repos (even non-ahead ones), for all branches.");
 
 		cmd += [&]
 		{
-			runShInRepos(flagAhead ? getAheadRepoPaths() : repoPaths, flagForce ? "git push --all -f" : "git push --all");
+			string toRun{"git push"};
+			if(flagAll) toRun += " --all";
+			if(flagForce) toRun += " -f";
+
+			for(const auto& rd : repoDatas)
+			{
+				if(!flagAll && !rd.canPush) continue;
+				if(!flagAll) toRun += " origin " + rd.currentBranch;
+				runShInPath(rd.path, toRun);
+			}
 		};
 	}
 	void GitWs::initCmdPull()
@@ -138,7 +149,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
+			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
 			if(flagStash) runShInRepos(currentRepoPaths, "git stash");
 			if(flagForce) runShInRepos(currentRepoPaths, "git checkout -f");
 			runShInRepos(currentRepoPaths, "git pull");
@@ -159,7 +170,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
+			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
 			if(arg.get() == "push") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 			else if(arg.get() == "pull") runShInRepos(currentRepoPaths, "git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
 			else if(arg.get() == "au")
@@ -177,7 +188,7 @@ namespace gitws
 		auto& showAllFlag(cmd.createFlag("a", "showall"));
 		showAllFlag.setBriefDescription("Print empty messages?");
 
-		cmd += [&]{ runShInRepos(repoPaths, "git status -s --ignore-submodules=dirty", showAllFlag); };
+		cmd += [&]{ runShInRepos(getAllRepoPaths(), "git status -s --ignore-submodules=dirty", showAllFlag); };
 	}
 	void GitWs::initCmdGitg()
 	{
@@ -189,7 +200,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
+			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
 			runShInRepos(currentRepoPaths, "gitg -c&");
 		};
 	}
@@ -213,7 +224,7 @@ namespace gitws
 		{
 			if(flagChanged && flagAhead) { log("-c and -a are mutually exclusive"); return; }
 
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : repoPaths);
+			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
 			if(flagAhead) currentRepoPaths = getAheadRepoPaths();
 
 			runShInRepos(currentRepoPaths, arg.get());
@@ -225,9 +236,13 @@ namespace gitws
 		cmd.setDescription("Queries the status of all the repos, returning whether they are changed or ahead.");
 		cmd += [&]
 		{
-			log("<<ALL REPO PATHS>>", "----");					for(const auto& p : repoPaths) log(p);				log("", "----"); log(""); log("");
-			log("<<CHANGED REPO PATHS (can commit)>>", "----");	for(const auto& p : getChangedRepoPaths()) log(p);	log("", "----"); log(""); log("");
-			log("<<AHEAD REPO PATHS (can push)>>", "----");		for(const auto& p : getAheadRepoPaths()) log(p);	log("", "----"); log(""); log("");
+			for(const auto& rd : repoDatas)
+			{
+				cout << setw(30) << left << rd.path << setw(15) << " ~ " + rd.currentBranch;
+				if(rd.canCommit) cout << setw(15) << left << "(can commit)";
+				if(rd.canPush) cout << setw(15) << left << "(can push)";
+				cout << endl;
+			}
 		};
 	}
 	void GitWs::initCmdVarTest()
@@ -252,11 +267,20 @@ namespace gitws
 		};
 	}
 
-	void GitWs::initRepoPaths()
+	void GitWs::initRepoDatas()
 	{
-		for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoPaths.push_back(p);
+		for(auto& p : getScan<Mode::Single, Type::Folder>("./"))
+			if(exists(p + "/.git/"))
+			{
+				RepoData data;
+				data.path = p;
+				data.currentBranch = runShInPath(p, "git rev-parse --abbrev-ref HEAD")[0];
+				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) data.canCommit = true;
+				if(stoi(runShInPath(p, "git rev-list HEAD...origin/" + data.currentBranch + " --ignore-submodules --count")[0]) > 0) data.canPush = true;
+				repoDatas.push_back(data);
+			}
 	}
 	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); /*initCmdVarTest();*/ }
 
-	GitWs::GitWs(const vector<string>& mCommandLine) { initRepoPaths(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
+	GitWs::GitWs(const vector<string>& mCommandLine) { initRepoDatas(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
 }

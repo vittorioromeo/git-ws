@@ -55,9 +55,9 @@ namespace gitws
 
 			if(files.empty() && !mPrintEmpty) continue;
 
-			log("<<" + p + ">>", "Repo");
-			for(auto& f : files) log(f, ">");
-			log("", "----"); log("");
+			lo << lt(p) << endl;
+			for(auto& f : files) lo << ">" << f << endl;
+			lo << lt("----") << endl << endl;
 		}
 	}
 
@@ -78,34 +78,34 @@ namespace gitws
 		{
 			if(!optArg)
 			{
-				log("Git-ws help");
-				log("");
+				lo << lt("git-ws help") << endl;
+				lo << endl;
 
 				if(!flagVerbose)
 				{
 					for(const auto& c : cmdLine.getCmds())
 					{
-						log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
-						log("");
+						lo << (c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
+						lo << endl;
 					}
 				}
 				else
 				{
 					for(const auto& c : cmdLine.getCmds())
 					{
-						log("");
-						log(c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
-						log("");
-						log(c->getHelpString());
+						lo << endl;
+						lo << (c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
+						lo << endl;
+						lo << (c->getHelpString());
 					}
 				}
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
-			log("");
-			log(c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
-			log("");
-			log(c.getHelpString());
+			lo << endl;
+			lo << (c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
+			lo << endl;
+			lo << (c.getHelpString());
 		};
 	}
 	void GitWs::initCmdPush()
@@ -222,7 +222,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			if(flagChanged && flagAhead) { log("-c and -a are mutually exclusive"); return; }
+			if(flagChanged && flagAhead) { lo << "-c and -a are mutually exclusive" << endl; return; }
 
 			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
 			if(flagAhead) currentRepoPaths = getAheadRepoPaths();
@@ -263,7 +263,7 @@ namespace gitws
 			for(auto& i : argPack) result += i;
 			for(auto& i : argPack2) result2 *= i;
 			for(auto& i : argPack3) result3 -= i;
-			log(toStr(result) + " " + toStr(result2) + " " + toStr(result3));
+			lo << (toStr(result) + " " + toStr(result2) + " " + toStr(result3)) << endl;
 		};
 	}
 

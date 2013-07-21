@@ -14,7 +14,9 @@ int main(int argc, char* argv[])
 	for(int i{1}; i < argc; ++i) args.push_back(argv[i]);
 
 	try { gitws::GitWs{args}; }
-	catch(std::runtime_error mException) { ssvu::log(mException.what()); return 1; }
+	catch(std::runtime_error mException) { ssvu::lo << mException.what() << std::endl; return 1; }
+
+	ssvu::saveLogToFile("log.txt");
 
 	return 0;
 }

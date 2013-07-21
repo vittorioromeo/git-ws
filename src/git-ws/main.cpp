@@ -8,15 +8,20 @@
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/GitWs/GitWs.h"
 
+using namespace std;
+using namespace ssvu;
+using namespace gitws;
+
+
 int main(int argc, char* argv[])
 {
-	std::vector<std::string> args;
+	vector<string> args;
 	for(int i{1}; i < argc; ++i) args.push_back(argv[i]);
 
-	try { gitws::GitWs{args}; }
-	catch(std::runtime_error mException) { ssvu::lo << mException.what() << std::endl; return 1; }
+	try { GitWs{args}; }
+	catch(runtime_error mException) { lo << mException.what() << endl; return 1; }
 
-	ssvu::saveLogToFile("log.txt");
+	saveLogToFile("log.txt");
 
 	return 0;
 }

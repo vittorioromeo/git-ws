@@ -35,7 +35,8 @@ namespace gitws
 
 	vector<string> GitWs::runShInPath(const string& mPath, const string& mCommand)
 	{
-		FILE* pipe{popen(string{"(cd " + mPath + ";" + mCommand + ")"}.c_str(), "r")};
+		string toRun{"(cd " + mPath + ";" + mCommand + ")"};
+		FILE* pipe{popen(toRun.c_str(), "r")};
 		char buffer[1000];
 		string file; vector<string> files;
 		while(fgets(buffer, sizeof(buffer), pipe) != NULL)
@@ -121,13 +122,13 @@ namespace gitws
 
 		cmd += [&]
 		{
-			string toRun{"git push"};
-			if(flagAll) toRun += " --all";
-			if(flagForce) toRun += " -f";
-
 			for(const auto& rd : repoDatas)
 			{
 				if(!flagAll && !rd.canPush) continue;
+
+				string toRun{"git push"};
+				if(flagAll) toRun += " --all";
+				if(flagForce) toRun += " -f";
 				if(!flagAll) toRun += " origin " + rd.currentBranch;
 				runShInPath(rd.path, toRun);
 			}

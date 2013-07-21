@@ -6,7 +6,7 @@ Currently intended for personal use only, but quite functional
 
 ## How to build
 
-Tested on: **Arch Linux**, with **g++ 4.7.2**
+Tested on: **Arch Linux**, with **g++ 4.7.2** and **g++ 4.8.1**
 
 1. Clone this repo
 ```bash
@@ -24,7 +24,7 @@ cd git-ws
 ./build-repository-git-ws.sh
 ```
 
-4. You may have to append `/usr/local/lib` to the `$PATH` or `$LD_LIBRARY_PATH` environment variables to allow Open Hexagon to find the required libraries - if that doesn't work, try:
+4. You may have to append `/usr/local/lib` to the `$PATH` or `$LD_LIBRARY_PATH` environment variables to allow git-ws to find the required libraries - if that doesn't work, try:
 ```bash
 sudo ldconfig /usr/local/lib  
 ```
@@ -55,16 +55,16 @@ Auto generated help
 
 
 
-<push>   [-f || --force] [-a || --ahead-only] 
+<push>   [-f || --force] [-a || --all] 
 
 >>Pushes every git repo.
 
 	Flags:
 * [-f || --force]
-  --Forced pull?
+  --Forced push?
 
-* [-a || --ahead-only]
-  --Run the command only in folders where repos are ahead of the remote?
+* [-a || --all]
+  --Run the command in all repos (even non-ahead ones), for all branches.
 
 
 
@@ -146,6 +146,7 @@ Auto generated help
 <query>    
 
 >>Queries the status of all the repos, returning whether they are changed or ahead.
+
 
 ```
 

@@ -12,14 +12,21 @@
 
 namespace gitws
 {
+	struct RepoData
+	{
+		std::string path, currentBranch;
+		bool canCommit{false}, canPush{false};
+	};
+
 	class GitWs
 	{
 		private:
-			std::vector<std::string> repoPaths;
+			std::vector<RepoData> repoDatas;
 			ssvcl::CmdLine cmdLine;
 
-			std::vector<std::string> getAheadRepoPaths();
+			std::vector<std::string> getAllRepoPaths();
 			std::vector<std::string> getChangedRepoPaths();
+			std::vector<std::string> getAheadRepoPaths();
 
 			std::vector<std::string> runShInPath(const std::string& mPath, const std::string& mCommand);
 			void runShInRepos(const std::vector<std::string>& mRepoPaths, const std::string& mCommand, bool mPrintEmpty = false);
@@ -34,7 +41,7 @@ namespace gitws
 			void initCmdQuery();
 			void initCmdVarTest();
 
-			void initRepoPaths();
+			void initRepoDatas();
 			void initCmds();
 
 		public:

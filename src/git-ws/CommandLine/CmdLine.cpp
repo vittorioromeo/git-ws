@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <stdexcept>
+#include <limits>
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/Cmd.h"
 #include "git-ws/CommandLine/Elements/Flag.h"
@@ -19,7 +20,17 @@ namespace ssvcl
 	Cmd& CmdLine::findCmd(const string& mName) const
 	{
 		for(const auto& c : cmds) if(c->hasName(mName)) return *c;
-		throw runtime_error("No command with name <" + mName + ">");
+
+		pair<unsigned int, string> closestMatch{numeric_limits<unsigned int>::max(), ""};
+
+		for(const auto& c : cmds)
+			for(const auto& n : c->getNames())
+			{
+				const auto& dist(getLevenshteinDistance(n, mName));
+				if(dist < closestMatch.first) closestMatch = {dist, n};
+			}
+
+		throw runtime_error("No command with name <" + mName + ">\nDid you mean <" + closestMatch.second + ">?");
 	}
 	Cmd& CmdLine::create(const initializer_list<string>& mNames) { auto result(new Cmd{mNames}); cmds.push_back(result); return *result; }
 	void CmdLine::parseCmdLine(const vector<string>& mArgs)

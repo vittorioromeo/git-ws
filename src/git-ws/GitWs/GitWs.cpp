@@ -26,10 +26,10 @@ namespace gitws
 		for(const auto& rd : repoDatas) if(rd.commitStatus == RepoStatus::CanCommit) result.push_back(rd.path);
 		return result;
 	}
-	vector<string> GitWs::getDirtySMRepoPaths()
+	vector<string> GitWs::getBehindSMRepoPaths()
 	{
 		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.commitStatus == RepoStatus::DirtySubmodules) result.push_back(rd.path);
+		for(const auto& rd : repoDatas) if(rd.submodulesBehind || rd.commitStatus == RepoStatus::DirtySubmodules) result.push_back(rd.path);
 		return result;
 	}
 	vector<string> GitWs::getAheadRepoPaths()
@@ -177,7 +177,8 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagAll ? getAllRepoPaths() : getDirtySMRepoPaths());
+			auto currentRepoPaths(flagAll ? getAllRepoPaths() : getBehindSMRepoPaths());
+
 			if(arg.get() == "pull" || arg.get() == "au")
 			{
 				runShInRepos(currentRepoPaths, "git submodule update --recursive");
@@ -249,6 +250,7 @@ namespace gitws
 				if(rd.commitStatus == RepoStatus::CanCommit) cout << setw(15) << left << "(can commit)";
 				if(rd.canPush) cout << setw(15) << left << "(can push)";
 				if(rd.commitStatus == RepoStatus::DirtySubmodules) cout << setw(15) << left << "(dirty submodules)";
+				if(rd.submodulesBehind) cout << setw(15) << left << "(outdated submodules)";
 				cout << endl;
 			}
 		};
@@ -286,6 +288,7 @@ namespace gitws
 				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) data.commitStatus = RepoStatus::CanCommit;
 				if(data.commitStatus == RepoStatus::None && !runShInPath(p, "git diff-index --name-only HEAD --").empty()) data.commitStatus = RepoStatus::DirtySubmodules;
 				if(stoi(runShInPath(p, "git rev-list HEAD...origin/" + data.currentBranch + " --ignore-submodules --count")[0]) > 0) data.canPush = true;
+				if(!runShInPath(p, "git submodule foreach git diff remotes/origin/HEAD").empty()) data.submodulesBehind = true;;
 				repoDatas.push_back(data);
 			}
 	}

@@ -18,6 +18,7 @@ namespace gitws
 	{
 		std::string path, currentBranch;
 		RepoStatus commitStatus{RepoStatus::None};
+		bool submodulesBehind{false};
 		bool canPush{false};
 	};
 
@@ -29,7 +30,7 @@ namespace gitws
 
 			std::vector<std::string> getAllRepoPaths();
 			std::vector<std::string> getChangedRepoPaths();
-			std::vector<std::string> getDirtySMRepoPaths();
+			std::vector<std::string> getBehindSMRepoPaths();
 			std::vector<std::string> getAheadRepoPaths();
 
 			std::vector<std::string> runShInPath(const std::string& mPath, const std::string& mCommand);

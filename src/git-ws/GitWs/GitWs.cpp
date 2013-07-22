@@ -23,7 +23,13 @@ namespace gitws
 	vector<string> GitWs::getChangedRepoPaths()
 	{
 		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.canCommit) result.push_back(rd.path);
+		for(const auto& rd : repoDatas) if(rd.commitStatus == RepoStatus::CanCommit) result.push_back(rd.path);
+		return result;
+	}
+	vector<string> GitWs::getDirtySMRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& rd : repoDatas) if(rd.commitStatus == RepoStatus::DirtySubmodules) result.push_back(rd.path);
 		return result;
 	}
 	vector<string> GitWs::getAheadRepoPaths()
@@ -159,26 +165,25 @@ namespace gitws
 	void GitWs::initCmdSubmodule()
 	{
 		auto& cmd(cmdLine.create({"sub", "submodule"}));
-		cmd.setDescription("Work with git submodules in every repo.");
+		cmd.setDescription("Work with git submodules in every repo with dirty submodules.");
 
 		auto& arg(cmd.createArg<string>());
 		arg.setName("Action");
-		arg.setBriefDescription("Action to run for every submodule. Can be 'push', 'pull' or 'au'.");
-		arg.setDescription("'push' commits all changes in the repo and pushes them to the remote. Do not run this unless all non-submodule changes have been taken care of!\n'pull' recursively pulls the latest submodules from the remote.\n'au' calls 'pull' then 'push' in succession.");
+		arg.setBriefDescription("Action to run for every submodule. Can be 'pull' or 'au'.");
+		arg.setDescription("'pull' recursively pulls the latest submodules from the remote, discarding any change.\n'au' calls 'pull' then pushes in succession.");
 
-		auto& flagChanged(cmd.createFlag("c", "changed-only"));
-		flagChanged.setBriefDescription("Run the command only in folders where repos have changes?");
+		auto& flagAll(cmd.createFlag("a", "all"));
+		flagAll.setBriefDescription("Run the command in all repos?");
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
-			if(arg.get() == "push") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
-			else if(arg.get() == "pull") runShInRepos(currentRepoPaths, "git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
-			else if(arg.get() == "au")
+			auto currentRepoPaths(flagAll ? getAllRepoPaths() : getDirtySMRepoPaths());
+			if(arg.get() == "pull" || arg.get() == "au")
 			{
-				runShInRepos(currentRepoPaths, "git submodule foreach git stash; git submodule foreach git pull origin master --recurse-submodules");
-				runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
+				runShInRepos(currentRepoPaths, "git submodule update --recursive");
+				runShInRepos(currentRepoPaths, "git submodule foreach git pull origin master --recurse-submodules");
 			}
+			if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 		};
 	}
 	void GitWs::initCmdStatus()
@@ -240,8 +245,9 @@ namespace gitws
 			for(const auto& rd : repoDatas)
 			{
 				cout << setw(30) << left << rd.path << setw(15) << " ~ " + rd.currentBranch;
-				if(rd.canCommit) cout << setw(15) << left << "(can commit)";
+				if(rd.commitStatus == RepoStatus::CanCommit) cout << setw(15) << left << "(can commit)";
 				if(rd.canPush) cout << setw(15) << left << "(can push)";
+				if(rd.commitStatus == RepoStatus::DirtySubmodules) cout << setw(15) << left << "(dirty submodules)";
 				cout << endl;
 			}
 		};
@@ -276,7 +282,8 @@ namespace gitws
 				RepoData data;
 				data.path = p;
 				data.currentBranch = runShInPath(p, "git rev-parse --abbrev-ref HEAD")[0];
-				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) data.canCommit = true;
+				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) data.commitStatus = RepoStatus::CanCommit;
+				if(data.commitStatus == RepoStatus::None && !runShInPath(p, "git diff-index --name-only HEAD --").empty()) data.commitStatus = RepoStatus::DirtySubmodules;
 				if(stoi(runShInPath(p, "git rev-list HEAD...origin/" + data.currentBranch + " --ignore-submodules --count")[0]) > 0) data.canPush = true;
 				repoDatas.push_back(data);
 			}

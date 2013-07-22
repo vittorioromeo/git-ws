@@ -12,10 +12,13 @@
 
 namespace gitws
 {
+	enum class RepoStatus{None, CanCommit, DirtySubmodules};
+
 	struct RepoData
 	{
 		std::string path, currentBranch;
-		bool canCommit{false}, canPush{false};
+		RepoStatus commitStatus{RepoStatus::None};
+		bool canPush{false};
 	};
 
 	class GitWs
@@ -26,6 +29,7 @@ namespace gitws
 
 			std::vector<std::string> getAllRepoPaths();
 			std::vector<std::string> getChangedRepoPaths();
+			std::vector<std::string> getDirtySMRepoPaths();
 			std::vector<std::string> getAheadRepoPaths();
 
 			std::vector<std::string> runShInPath(const std::string& mPath, const std::string& mCommand);

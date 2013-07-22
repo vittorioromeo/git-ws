@@ -182,6 +182,7 @@ namespace gitws
 			{
 				runShInRepos(currentRepoPaths, "git submodule update --recursive");
 				runShInRepos(currentRepoPaths, "git submodule foreach git pull origin master --recurse-submodules");
+				runShInRepos(currentRepoPaths, "git submodule update --recursive");
 			}
 			if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 		};

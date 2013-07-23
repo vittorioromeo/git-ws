@@ -37,14 +37,8 @@ namespace gitws
 		if(!runShInPath(path, "git diff-index --name-only HEAD --").empty()) return RepoStatus::DirtySubmodules;
 		return RepoStatus::None;
 	}
-	bool RepoData::getCanPush() const
-	{
-		return stoi(runShInPath(path, "git rev-list HEAD...origin/" + currentBranch + " --ignore-submodules --count")[0]) > 0;
-	}
-	bool RepoData::getCanPull() const
-	{
-		return !runShInPath(path, "git fetch --dry-run 2>&1").empty();
-	}
+	bool RepoData::getCanPush() const { return stoi(runShInPath(path, "git rev-list HEAD...origin/" + currentBranch + " --ignore-submodules --count")[0]) > 0; }
+	bool RepoData::getCanPull() const { return !runShInPath(path, "git fetch --dry-run 2>&1").empty(); }
 	bool RepoData::getSubmodulesBehind() const
 	{
 		for(const auto& s : runShInPath(path, "git submodule foreach git fetch --dry-run 2>&1"))
@@ -285,7 +279,8 @@ namespace gitws
 
 			for(const auto& rd : repoDatas)
 			{
-				auto f(async(launch::async, [&]{
+				auto f(async(launch::async, [&]
+				{
 					ostringstream s;
 					s << setw(25) << left << rd.path << setw(15) << " ~ " + rd.currentBranch << flush;
 

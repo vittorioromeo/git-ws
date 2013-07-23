@@ -70,7 +70,11 @@ namespace gitws
 	vector<string> GitWs::getBehindSMRepoPaths()
 	{
 		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.getSubmodulesBehind() || rd.getCommitStatus() == RepoStatus::DirtySubmodules) result.push_back(rd.path);
+		for(const auto& rd : repoDatas)
+		{
+			const auto& cs(rd.getCommitStatus());
+			if((rd.getSubmodulesBehind() || cs == RepoStatus::DirtySubmodules) && cs != RepoStatus::CanCommit && !rd.getCanPush()) result.push_back(rd.path);
+		}
 		return result;
 	}
 	vector<string> GitWs::getAheadRepoPaths()
@@ -206,15 +210,18 @@ namespace gitws
 		{
 			auto currentRepoPaths(flagAll ? getAllRepoPaths() : getBehindSMRepoPaths());
 
-			if(arg.get() == "pull" || arg.get() == "au")
+			while(!flagAll && !currentRepoPaths.empty())
 			{
-				runShInRepos(currentRepoPaths, "git submodule update --recursive --remote --init");
-				runShInRepos(currentRepoPaths, "git submodule foreach git reset --hard");
-				runShInRepos(currentRepoPaths, "git submodule foreach git checkout origin master");
-				runShInRepos(currentRepoPaths, "git submodule foreach git rebase origin master");
-				runShInRepos(currentRepoPaths, "git submodule foreach git pull -f origin master --recurse-submodules");
+				if(arg.get() == "pull" || arg.get() == "au")
+				{
+					runShInRepos(currentRepoPaths, "git submodule update --recursive --remote --init");
+					runShInRepos(currentRepoPaths, "git submodule foreach git reset --hard");
+					runShInRepos(currentRepoPaths, "git submodule foreach git checkout origin master");
+					runShInRepos(currentRepoPaths, "git submodule foreach git rebase origin master");
+					runShInRepos(currentRepoPaths, "git submodule foreach git pull -f origin master --recurse-submodules");
+				}
+				if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 			}
-			if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 		};
 	}
 	void GitWs::initCmdStatus()

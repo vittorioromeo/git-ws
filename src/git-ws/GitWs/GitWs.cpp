@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <iostream>
 #include <iomanip>
+#include <future>
 #include "git-ws/GitWs/GitWs.h"
 
 using namespace std;
@@ -280,16 +281,29 @@ namespace gitws
 		cmd.setDescription("Queries the status of all the repos, returning whether they are changed or ahead.");
 		cmd += [&]
 		{
+			vector<future<string>> futures;
+
 			for(const auto& rd : repoDatas)
 			{
-				cout << setw(25) << left << rd.path << setw(15) << " ~ " + rd.currentBranch;
-				if(rd.getCommitStatus() == RepoStatus::CanCommit) cout << setw(15) << left << "(can commit)";
-				if(rd.getCanPush()) cout << setw(15) << left << "(can push)";
-				if(rd.getCanPull()) cout << setw(15) << left << "(can pull)";
-				if(rd.getCommitStatus() == RepoStatus::DirtySubmodules) cout << setw(15) << left << "(dirty submodules)";
-				if(rd.getSubmodulesBehind()) cout << setw(15) << left << "(outdated submodules)";
-				cout << endl;
+				auto f(async(launch::async, [&]{
+					ostringstream s;
+					s << setw(25) << left << rd.path << setw(15) << " ~ " + rd.currentBranch << flush;
+
+					{
+						auto a0 = async(launch::async, [&]{ if(rd.getCommitStatus() == RepoStatus::CanCommit)		s << setw(15) << left << "(can commit)" << flush; });
+						auto a1 = async(launch::async, [&]{ if(rd.getCanPush())										s << setw(15) << left << "(can push)" << flush; });
+						auto a2 = async(launch::async, [&]{ if(rd.getCommitStatus() == RepoStatus::DirtySubmodules)	s << setw(15) << left << "(dirty submodules)" << flush; });
+						auto a3 = async(launch::async, [&]{ if(rd.getCanPull())										s << setw(15) << left << "(can pull)" << flush; });
+						auto a4 = async(launch::async, [&]{ if(rd.getSubmodulesBehind())							s << setw(15) << left << "(outdated submodules)"; });
+					}
+
+					return s.str();
+				}));
+
+				futures.push_back(move(f));
 			}
+
+			for(auto& f : futures) cout << f.get() << endl;
 		};
 	}
 	void GitWs::initRepoDatas() { for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoDatas.emplace_back(p, runShInPath(p, "git rev-parse --abbrev-ref HEAD")[0]); }

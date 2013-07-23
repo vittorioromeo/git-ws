@@ -14,12 +14,17 @@ namespace gitws
 {
 	enum class RepoStatus{None, CanCommit, DirtySubmodules};
 
+	std::vector<std::string> runShInPath(const std::string& mPath, const std::string& mCommand);
+
 	struct RepoData
 	{
 		std::string path, currentBranch;
-		RepoStatus commitStatus{RepoStatus::None};
-		bool submodulesBehind{false};
-		bool canPush{false};
+		RepoData(const std::string& mPath, const std::string& mCurrentBranch) : path{mPath}, currentBranch{mCurrentBranch} { }
+
+		RepoStatus getCommitStatus() const;
+		bool getCanPush() const;
+		bool getCanPull() const;
+		bool getSubmodulesBehind() const;
 	};
 
 	class GitWs
@@ -33,7 +38,6 @@ namespace gitws
 			std::vector<std::string> getBehindSMRepoPaths();
 			std::vector<std::string> getAheadRepoPaths();
 
-			std::vector<std::string> runShInPath(const std::string& mPath, const std::string& mCommand);
 			void runShInRepos(const std::vector<std::string>& mRepoPaths, const std::string& mCommand, bool mPrintEmpty = false);
 
 			void initCmdHelp();
@@ -44,7 +48,6 @@ namespace gitws
 			void initCmdGitg();
 			void initCmdDo();
 			void initCmdQuery();
-			void initCmdVarTest();
 
 			void initRepoDatas();
 			void initCmds();

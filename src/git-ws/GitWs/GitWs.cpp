@@ -14,32 +14,7 @@ using namespace ssvcl;
 
 namespace gitws
 {
-	vector<string> GitWs::getAllRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) result.push_back(rd.path);
-		return result;
-	}
-	vector<string> GitWs::getChangedRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.commitStatus == RepoStatus::CanCommit) result.push_back(rd.path);
-		return result;
-	}
-	vector<string> GitWs::getBehindSMRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.submodulesBehind || rd.commitStatus == RepoStatus::DirtySubmodules) result.push_back(rd.path);
-		return result;
-	}
-	vector<string> GitWs::getAheadRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.canPush) result.push_back(rd.path);
-		return result;
-	}
-
-	vector<string> GitWs::runShInPath(const string& mPath, const string& mCommand)
+	vector<string> runShInPath(const string& mPath, const string& mCommand)
 	{
 		string toRun{"(cd " + mPath + ";" + mCommand + ")"};
 		FILE* pipe{popen(toRun.c_str(), "r")};
@@ -54,6 +29,58 @@ namespace gitws
 
 		return files;
 	}
+
+	RepoStatus RepoData::getCommitStatus() const
+	{
+		if(!runShInPath(path, "git diff-index --name-only --ignore-submodules HEAD --").empty()) return RepoStatus::CanCommit;
+		if(!runShInPath(path, "git diff-index --name-only HEAD --").empty()) return RepoStatus::DirtySubmodules;
+		return RepoStatus::None;
+	}
+	bool RepoData::getCanPush() const
+	{
+		return stoi(runShInPath(path, "git rev-list HEAD...origin/" + currentBranch + " --ignore-submodules --count")[0]) > 0;
+	}
+	bool RepoData::getCanPull() const
+	{
+		return !runShInPath(path, "git fetch --dry-run").empty();
+	}
+	bool RepoData::getSubmodulesBehind() const
+	{
+		for(const auto& s : runShInPath(path, "git submodule foreach git fetch --dry-run"))
+		{
+			if(startsWith(s, "Entering")) continue;
+			return true;
+		}
+
+		return false;
+	}
+
+	vector<string> GitWs::getAllRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& rd : repoDatas) result.push_back(rd.path);
+		return result;
+	}
+	vector<string> GitWs::getChangedRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& rd : repoDatas) if(rd.getCommitStatus() == RepoStatus::CanCommit) result.push_back(rd.path);
+		return result;
+	}
+	vector<string> GitWs::getBehindSMRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& rd : repoDatas) if(rd.getSubmodulesBehind() || rd.getCommitStatus() == RepoStatus::DirtySubmodules) result.push_back(rd.path);
+		return result;
+	}
+	vector<string> GitWs::getAheadRepoPaths()
+	{
+		vector<string> result;
+		for(const auto& rd : repoDatas) if(rd.getCanPush()) result.push_back(rd.path);
+		return result;
+	}
+
+
 	void GitWs::runShInRepos(const vector<string>& mRepoPaths, const string& mCommand, bool mPrintEmpty)
 	{
 		for(const auto& p : mRepoPaths)
@@ -130,7 +157,7 @@ namespace gitws
 		{
 			for(const auto& rd : repoDatas)
 			{
-				if(!flagAll && !rd.canPush) continue;
+				if(!flagAll && !rd.getCanPush()) continue;
 
 				string toRun{"git push"};
 				if(flagAll) toRun += " --all";
@@ -181,8 +208,11 @@ namespace gitws
 
 			if(arg.get() == "pull" || arg.get() == "au")
 			{
-				runShInRepos(currentRepoPaths, "git submodule update --recursive");
-				runShInRepos(currentRepoPaths, "git submodule foreach git pull origin master --recurse-submodules");
+				runShInRepos(currentRepoPaths, "git submodule update --recursive --remote --init");
+				runShInRepos(currentRepoPaths, "git submodule foreach git reset --hard");
+				runShInRepos(currentRepoPaths, "git submodule foreach git checkout origin master");
+				runShInRepos(currentRepoPaths, "git submodule foreach git rebase origin master");
+				runShInRepos(currentRepoPaths, "git submodule foreach git pull -f origin master --recurse-submodules");
 			}
 			if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 		};
@@ -245,53 +275,18 @@ namespace gitws
 		{
 			for(const auto& rd : repoDatas)
 			{
-				cout << setw(30) << left << rd.path << setw(15) << " ~ " + rd.currentBranch;
-				if(rd.commitStatus == RepoStatus::CanCommit) cout << setw(15) << left << "(can commit)";
-				if(rd.canPush) cout << setw(15) << left << "(can push)";
-				if(rd.commitStatus == RepoStatus::DirtySubmodules) cout << setw(15) << left << "(dirty submodules)";
-				if(rd.submodulesBehind) cout << setw(15) << left << "(outdated submodules)";
+				cout << setw(25) << left << rd.path << setw(15) << " ~ " + rd.currentBranch;
+				if(rd.getCommitStatus() == RepoStatus::CanCommit) cout << setw(15) << left << "(can commit)";
+				if(rd.getCanPush()) cout << setw(15) << left << "(can push)";
+				if(rd.getCanPull()) cout << setw(15) << left << "(can pull)";
+				if(rd.getCommitStatus() == RepoStatus::DirtySubmodules) cout << setw(15) << left << "(dirty submodules)";
+				if(rd.getSubmodulesBehind()) cout << setw(15) << left << "(outdated submodules)";
 				cout << endl;
 			}
 		};
 	}
-	void GitWs::initCmdVarTest()
-	{
-		auto& cmd(cmdLine.create({"vartest"}));
-		auto& argPack(cmd.createFiniteArgPack<int>(2, 5));
-		argPack.setName("Numbers to add");
-		argPack.setBriefDescription("This is an argument pack, min2 max5, of numbers to add.");
-		argPack.setDescription(R"(ites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 a)");
-
-		auto& argPack2(cmd.createFiniteArgPack<int>(1, 3));
-		auto& argPack3(cmd.createInfiniteArgPack<int>());
-		cmd += [&]
-		{
-			int result = 0;
-			int result2 = 1;
-			int result3 = 0;
-			for(auto& i : argPack) result += i;
-			for(auto& i : argPack2) result2 *= i;
-			for(auto& i : argPack3) result3 -= i;
-			lo << (toStr(result) + " " + toStr(result2) + " " + toStr(result3)) << endl;
-		};
-	}
-
-	void GitWs::initRepoDatas()
-	{
-		for(auto& p : getScan<Mode::Single, Type::Folder>("./"))
-			if(exists(p + "/.git/"))
-			{
-				RepoData data;
-				data.path = p;
-				data.currentBranch = runShInPath(p, "git rev-parse --abbrev-ref HEAD")[0];
-				if(!runShInPath(p, "git diff-index --name-only --ignore-submodules HEAD --").empty()) data.commitStatus = RepoStatus::CanCommit;
-				if(data.commitStatus == RepoStatus::None && !runShInPath(p, "git diff-index --name-only HEAD --").empty()) data.commitStatus = RepoStatus::DirtySubmodules;
-				if(stoi(runShInPath(p, "git rev-list HEAD...origin/" + data.currentBranch + " --ignore-submodules --count")[0]) > 0) data.canPush = true;
-				if(!runShInPath(p, "git submodule foreach git diff remotes/origin/HEAD").empty()) data.submodulesBehind = true;;
-				repoDatas.push_back(data);
-			}
-	}
-	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); /*initCmdVarTest();*/ }
+	void GitWs::initRepoDatas() { for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoDatas.emplace_back(p, runShInPath(p, "git rev-parse --abbrev-ref HEAD")[0]); }
+	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
 	GitWs::GitWs(const vector<string>& mCommandLine) { initRepoDatas(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
 }

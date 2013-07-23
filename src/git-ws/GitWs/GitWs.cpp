@@ -42,11 +42,11 @@ namespace gitws
 	}
 	bool RepoData::getCanPull() const
 	{
-		return !runShInPath(path, "git fetch --dry-run").empty();
+		return !runShInPath(path, "git fetch --dry-run 2>&1").empty();
 	}
 	bool RepoData::getSubmodulesBehind() const
 	{
-		for(const auto& s : runShInPath(path, "git submodule foreach git fetch --dry-run"))
+		for(const auto& s : runShInPath(path, "git submodule foreach git fetch --dry-run 2>&1"))
 		{
 			if(startsWith(s, "Entering")) continue;
 			return true;

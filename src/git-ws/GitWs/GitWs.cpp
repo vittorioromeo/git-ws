@@ -205,18 +205,15 @@ namespace gitws
 		{
 			auto currentRepoPaths(flagAll ? getAllRepoPaths() : getBehindSMRepoPaths());
 
-			while(!flagAll && !currentRepoPaths.empty())
+			if(arg.get() == "pull" || arg.get() == "au")
 			{
-				if(arg.get() == "pull" || arg.get() == "au")
-				{
-					runShInRepos(currentRepoPaths, "git submodule update --recursive --remote --init");
-					runShInRepos(currentRepoPaths, "git submodule foreach git reset --hard");
-					runShInRepos(currentRepoPaths, "git submodule foreach git checkout origin master");
-					runShInRepos(currentRepoPaths, "git submodule foreach git rebase origin master");
-					runShInRepos(currentRepoPaths, "git submodule foreach git pull -f origin master --recurse-submodules");
-				}
-				if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
+				runShInRepos(currentRepoPaths, "git submodule update --recursive --remote --init");
+				runShInRepos(currentRepoPaths, "git submodule foreach git reset --hard");
+				runShInRepos(currentRepoPaths, "git submodule foreach git checkout origin master");
+				runShInRepos(currentRepoPaths, "git submodule foreach git rebase origin master");
+				runShInRepos(currentRepoPaths, "git submodule foreach git pull -f origin master --recurse-submodules");
 			}
+			if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
 		};
 	}
 	void GitWs::initCmdStatus()

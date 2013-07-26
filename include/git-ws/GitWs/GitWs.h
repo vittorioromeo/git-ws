@@ -7,38 +7,96 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/CommandLine.h"
 
 namespace gitws
 {
-	enum class RepoStatus{None, CanCommit, DirtySubmodules};
-
-	std::vector<std::string> runShInPath(const std::string& mPath, const std::string& mCommand);
-
-	struct RepoData
+	class Repo
 	{
-		std::string path, currentBranch;
-		RepoData(const std::string& mPath, const std::string& mCurrentBranch) : path{mPath}, currentBranch{mCurrentBranch} { }
+		public:
+			enum class Status{None, CanCommit, DirtySM};
 
-		RepoStatus getCommitStatus() const;
-		bool getCanPush() const;
-		bool getCanPull() const;
-		bool getSubmodulesBehind() const;
+		private:
+			std::string path, branch;
+
+			inline std::string runGetBranch() const							{ return run("git rev-parse --abbrev-ref HEAD")[0]; }
+			inline std::string runRevList(const std::string& mBranch) const	{ return run("git rev-list HEAD...origin/" + mBranch + " --ignore-submodules --count")[0]; }
+			inline std::vector<std::string> runGetFetch() const				{ return run("git fetch --dry-run 2>&1"); }
+			inline std::vector<std::string> runGetFetchSM() const			{ return run("git submodule foreach git fetch --dry-run 2>&1"); }
+			inline bool runHasDiffIndex(bool mIgnoreSubmodules = false) const
+			{
+				return run(std::string{"git diff-index --name-only"} + (mIgnoreSubmodules ? " --ignore-submodules" : "")  + " HEAD --").empty();
+			}
+
+		public:
+			Repo(const std::string& mPath) : path{mPath}, branch{runGetBranch()} { }
+
+			inline std::vector<std::string> run(const std::string& mString) const
+			{
+				std::vector<std::string> result;
+				std::string toRun{"(cd " + path + ";" + mString + ")"}, file;
+				FILE* pipe{popen(toRun.c_str(), "r")};
+				char buffer[1000];
+				while(fgets(buffer, sizeof(buffer), pipe) != NULL)
+				{
+					file = buffer;
+					result.push_back(file.substr(0, file.size() - 1));
+				}
+				pclose(pipe);
+
+				return result;
+			}
+
+			inline void runSMPull() const
+			{
+				run(R"(git submodule update --recursive --remote --init;
+					git submodule foreach git reset --hard;
+					git submodule foreach git checkout origin master;
+					git submodule foreach git rebase origin master;
+					git submodule foreach git pull -f origin master --recurse-submodules)");
+			}
+			inline void runSMPush() const { run("git commit -am 'automated submodule update'; git push"); }
+
+			inline const std::string& getPath() const	{ return path; }
+			inline const std::string& getBranch() const	{ return branch; }
+
+			inline bool canPush() const { return std::stoi(runRevList(branch)) > 0; }
+			inline bool canPull() const { return !runGetFetch().empty(); }
+			inline Status getStatus() const
+			{
+				if(!runHasDiffIndex(true)) return Status::CanCommit;
+				if(!runHasDiffIndex(false)) return Status::DirtySM;
+				return Status::None;
+			}
+			inline bool getSubmodulesBehind() const
+			{
+				for(const auto& s : runGetFetchSM()) { if(ssvu::startsWith(s, "Entering")) continue; return true; }
+				return false;
+			}
 	};
 
 	class GitWs
 	{
 		private:
-			std::vector<RepoData> repoDatas;
+			std::vector<Repo> repos;
 			ssvcl::CmdLine cmdLine;
 
-			std::vector<std::string> getAllRepoPaths();
-			std::vector<std::string> getChangedRepoPaths();
-			std::vector<std::string> getBehindSMRepoPaths();
-			std::vector<std::string> getAheadRepoPaths();
+			inline std::vector<Repo> getBehindSMRepos() const
+			{
+				std::vector<Repo> result;
+				for(const auto& rd : repos)
+				{
+					const auto& cs(rd.getStatus());
+					if((rd.getSubmodulesBehind() || cs == Repo::Status::DirtySM) && cs != Repo::Status::CanCommit && !rd.canPush()) result.push_back(rd);
+				}
+				return result;
+			}
+			inline std::vector<Repo> getChangedRepos() const	{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.getStatus() == Repo::Status::CanCommit) result.push_back(rd); return result; }
+			inline std::vector<Repo> getAheadRepos() const		{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.canPush()) result.push_back(rd); return result; }
 
-			void runShInRepos(const std::vector<std::string>& mRepoPaths, const std::string& mCommand, bool mPrintEmpty = false);
+			void runInRepos(const std::vector<Repo>& mRepos, const std::string& mCommand, bool mPrintEmpty = false);
 
 			void initCmdHelp();
 			void initCmdPush();
@@ -49,11 +107,11 @@ namespace gitws
 			void initCmdDo();
 			void initCmdQuery();
 
-			void initRepoDatas();
-			void initCmds();
+			inline void initRepoDatas()	{ for(auto& p : ssvu::FileSystem::getScan<ssvu::FileSystem::Mode::Single, ssvu::FileSystem::Type::Folder>("./")) if(ssvu::FileSystem::exists(p + "/.git/")) repos.emplace_back(p); }
+			inline void initCmds()		{ initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
 		public:
-			GitWs(const std::vector<std::string>& mCommandLine);
+			GitWs(const std::vector<std::string>& mCommandLine) { initRepoDatas(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
 	};
 }
 

@@ -15,80 +15,17 @@ using namespace ssvcl;
 
 namespace gitws
 {
-	vector<string> runShInPath(const string& mPath, const string& mCommand)
+
+	string getBriefHelp(const Cmd& mCmd) { return mCmd.getNamesString() + " " + mCmd.getArgsString() + " " + mCmd.getOptArgsString() + " " + mCmd.getFlagsString() + " " + mCmd.getArgPacksString(); }
+
+	void GitWs::runInRepos(const vector<Repo>& mRepos, const string& mCommand, bool mPrintEmpty)
 	{
-		string toRun{"(cd " + mPath + ";" + mCommand + ")"};
-		FILE* pipe{popen(toRun.c_str(), "r")};
-		char buffer[1000];
-		string file; vector<string> files;
-		while(fgets(buffer, sizeof(buffer), pipe) != NULL)
+		for(const auto& r : mRepos)
 		{
-			file = buffer;
-			files.push_back(file.substr(0, file.size() - 1));
-		}
-		pclose(pipe);
-
-		return files;
-	}
-
-	RepoStatus RepoData::getCommitStatus() const
-	{
-		if(!runShInPath(path, "git diff-index --name-only --ignore-submodules HEAD --").empty()) return RepoStatus::CanCommit;
-		if(!runShInPath(path, "git diff-index --name-only HEAD --").empty()) return RepoStatus::DirtySubmodules;
-		return RepoStatus::None;
-	}
-	bool RepoData::getCanPush() const { return stoi(runShInPath(path, "git rev-list HEAD...origin/" + currentBranch + " --ignore-submodules --count")[0]) > 0; }
-	bool RepoData::getCanPull() const { return !runShInPath(path, "git fetch --dry-run 2>&1").empty(); }
-	bool RepoData::getSubmodulesBehind() const
-	{
-		for(const auto& s : runShInPath(path, "git submodule foreach git fetch --dry-run 2>&1"))
-		{
-			if(startsWith(s, "Entering")) continue;
-			return true;
-		}
-
-		return false;
-	}
-
-	vector<string> GitWs::getAllRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) result.push_back(rd.path);
-		return result;
-	}
-	vector<string> GitWs::getChangedRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.getCommitStatus() == RepoStatus::CanCommit) result.push_back(rd.path);
-		return result;
-	}
-	vector<string> GitWs::getBehindSMRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas)
-		{
-			const auto& cs(rd.getCommitStatus());
-			if((rd.getSubmodulesBehind() || cs == RepoStatus::DirtySubmodules) && cs != RepoStatus::CanCommit && !rd.getCanPush()) result.push_back(rd.path);
-		}
-		return result;
-	}
-	vector<string> GitWs::getAheadRepoPaths()
-	{
-		vector<string> result;
-		for(const auto& rd : repoDatas) if(rd.getCanPush()) result.push_back(rd.path);
-		return result;
-	}
-
-
-	void GitWs::runShInRepos(const vector<string>& mRepoPaths, const string& mCommand, bool mPrintEmpty)
-	{
-		for(const auto& p : mRepoPaths)
-		{
-			vector<string> files{runShInPath(p, mCommand)};
-
+			vector<string> files{r.run(mCommand)};
 			if(files.empty() && !mPrintEmpty) continue;
 
-			lo << lt(p) << endl;
+			lo << lt(r.getPath()) << endl;
 			for(auto& f : files) lo << ">" << f << endl;
 			lo << lt("----") << endl << endl;
 		}
@@ -111,34 +48,12 @@ namespace gitws
 		{
 			if(!optArg)
 			{
-				lo << lt("git-ws help") << endl;
-				lo << endl;
-
-				if(!flagVerbose)
-				{
-					for(const auto& c : cmdLine.getCmds())
-					{
-						lo << (c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
-						lo << endl;
-					}
-				}
-				else
-				{
-					for(const auto& c : cmdLine.getCmds())
-					{
-						lo << endl;
-						lo << (c->getNamesString() + " " + c->getArgsString() + " " + c->getOptArgsString() + " " + c->getFlagsString() + " " + c->getArgPacksString());
-						lo << endl;
-						lo << (c->getHelpString());
-					}
-				}
+				lo << lt("git-ws help") << endl << endl;
+				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << endl << (flagVerbose ? c->getHelpString() : "");
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
-			lo << endl;
-			lo << (c.getNamesString() + " " + c.getArgsString() + " " + c.getOptArgsString() + " " + c.getFlagsString() + " " + c.getArgPacksString());
-			lo << endl;
-			lo << (c.getHelpString());
+			lo << endl << getBriefHelp(c) << endl << c.getHelpString();
 		};
 	}
 	void GitWs::initCmdPush()
@@ -154,15 +69,15 @@ namespace gitws
 
 		cmd += [&]
 		{
-			for(const auto& rd : repoDatas)
+			for(const auto& rd : repos)
 			{
-				if(!flagAll && !rd.getCanPush()) continue;
+				if(!flagAll && !rd.canPush()) continue;
 
 				string toRun{"git push"};
 				if(flagAll) toRun += " --all";
 				if(flagForce) toRun += " -f";
-				if(!flagAll) toRun += " origin " + rd.currentBranch;
-				runShInPath(rd.path, toRun);
+				if(!flagAll) toRun += " origin " + rd.getBranch();
+				rd.run(toRun);
 			}
 		};
 	}
@@ -182,10 +97,10 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
-			if(flagStash) runShInRepos(currentRepoPaths, "git stash");
-			if(flagForce) runShInRepos(currentRepoPaths, "git checkout -f");
-			runShInRepos(currentRepoPaths, "git pull");
+			auto currentRepos(flagChanged ? getChangedRepos() : repos);
+			if(flagStash) runInRepos(currentRepos, "git stash");
+			if(flagForce) runInRepos(currentRepos, "git checkout -f");
+			runInRepos(currentRepos, "git pull");
 		};
 	}
 	void GitWs::initCmdSubmodule()
@@ -203,17 +118,10 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagAll ? getAllRepoPaths() : getBehindSMRepoPaths());
+			auto currentRepos(flagAll ? repos : getBehindSMRepos());
 
-			if(arg.get() == "pull" || arg.get() == "au")
-			{
-				runShInRepos(currentRepoPaths, "git submodule update --recursive --remote --init");
-				runShInRepos(currentRepoPaths, "git submodule foreach git reset --hard");
-				runShInRepos(currentRepoPaths, "git submodule foreach git checkout origin master");
-				runShInRepos(currentRepoPaths, "git submodule foreach git rebase origin master");
-				runShInRepos(currentRepoPaths, "git submodule foreach git pull -f origin master --recurse-submodules");
-			}
-			if(arg.get() == "au") runShInRepos(currentRepoPaths, "git commit -am 'automated submodule update'; git push");
+			if(arg.get() == "pull" || arg.get() == "au") for(const auto& r : currentRepos) r.runSMPull();
+			if(arg.get() == "au") for(const auto& r : currentRepos) r.runSMPush();
 		};
 	}
 	void GitWs::initCmdStatus()
@@ -221,23 +129,23 @@ namespace gitws
 		auto& cmd(cmdLine.create({"st", "status"}));
 		cmd.setDescription("Prints the status of all repos.");
 
-		auto& showAllFlag(cmd.createFlag("a", "showall"));
+		auto& showAllFlag(cmd.createFlag("a", "all"));
 		showAllFlag.setBriefDescription("Print empty messages?");
 
-		cmd += [&]{ runShInRepos(getAllRepoPaths(), "git status -s --ignore-submodules=dirty", showAllFlag); };
+		cmd += [&]{ runInRepos(repos, "git status -s --ignore-submodules=dirty", showAllFlag); };
 	}
 	void GitWs::initCmdGitg()
 	{
 		auto& cmd(cmdLine.create({"gitg"}));
 		cmd.setDescription("Open the gitg gui application in every repo folder.");
 
-		auto& flagChanged(cmd.createFlag("c", "changed-only"));
-		flagChanged.setBriefDescription("Open gitg only in folders where repos have changes?");
+		auto& flagAll(cmd.createFlag("a", "all"));
+		flagAll.setBriefDescription("Run the command in all repos?");
 
 		cmd += [&]
 		{
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
-			runShInRepos(currentRepoPaths, "gitg -c&");
+			auto currentRepos(flagAll ? repos : getChangedRepos());
+			runInRepos(currentRepos, "gitg -c&");
 		};
 	}
 	void GitWs::initCmdDo()
@@ -260,10 +168,10 @@ namespace gitws
 		{
 			if(flagChanged && flagAhead) { lo << "-c and -a are mutually exclusive" << endl; return; }
 
-			auto currentRepoPaths(flagChanged ? getChangedRepoPaths() : getAllRepoPaths());
-			if(flagAhead) currentRepoPaths = getAheadRepoPaths();
+			auto currentRepos(flagChanged ? getChangedRepos() : repos);
+			if(flagAhead) currentRepos = getAheadRepos();
 
-			runShInRepos(currentRepoPaths, arg.get());
+			runInRepos(currentRepos, arg.get());
 		};
 	}
 	void GitWs::initCmdQuery()
@@ -274,19 +182,19 @@ namespace gitws
 		{
 			vector<future<string>> futures;
 
-			for(const auto& rd : repoDatas)
+			for(const auto& rd : repos)
 			{
 				auto f(async(launch::async, [&]
 				{
 					ostringstream s;
-					s << setw(25) << left << rd.path << setw(15) << " ~ " + rd.currentBranch << flush;
+					s << setw(25) << left << rd.getPath() << setw(15) << " ~ " + rd.getBranch() << flush;
 
 					{
-						auto a0 = async(launch::async, [&]{ if(rd.getCommitStatus() == RepoStatus::CanCommit)		s << setw(15) << left << "(can commit)" << flush; });
-						auto a1 = async(launch::async, [&]{ if(rd.getCanPush())										s << setw(15) << left << "(can push)" << flush; });
-						auto a2 = async(launch::async, [&]{ if(rd.getCommitStatus() == RepoStatus::DirtySubmodules)	s << setw(15) << left << "(dirty submodules)" << flush; });
-						auto a3 = async(launch::async, [&]{ if(rd.getCanPull())										s << setw(15) << left << "(can pull)" << flush; });
-						auto a4 = async(launch::async, [&]{ if(rd.getSubmodulesBehind())							s << setw(15) << left << "(outdated submodules)"; });
+						auto a0 = async(launch::async, [&]{ if(rd.getStatus() == Repo::Status::CanCommit)	s << setw(15) << left << "(can commit)" << flush; });
+						auto a1 = async(launch::async, [&]{ if(rd.canPush())								s << setw(15) << left << "(can push)" << flush; });
+						auto a2 = async(launch::async, [&]{ if(rd.getStatus() == Repo::Status::DirtySM)		s << setw(15) << left << "(dirty submodules)" << flush; });
+						auto a3 = async(launch::async, [&]{ if(rd.canPull())								s << setw(15) << left << "(can pull)" << flush; });
+						auto a4 = async(launch::async, [&]{ if(rd.getSubmodulesBehind())					s << setw(15) << left << "(outdated submodules)"; });
 					}
 
 					return s.str();
@@ -298,8 +206,5 @@ namespace gitws
 			for(auto& f : futures) cout << f.get() << endl;
 		};
 	}
-	void GitWs::initRepoDatas() { for(auto& p : getScan<Mode::Single, Type::Folder>("./")) if(exists(p + "/.git/")) repoDatas.emplace_back(p, runShInPath(p, "git rev-parse --abbrev-ref HEAD")[0]); }
-	void GitWs::initCmds() { initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
-	GitWs::GitWs(const vector<string>& mCommandLine) { initRepoDatas(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
 }

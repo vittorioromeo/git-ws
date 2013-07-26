@@ -12,7 +12,6 @@ using namespace std;
 using namespace ssvu;
 using namespace gitws;
 
-
 int main(int argc, char* argv[])
 {
 	vector<string> args;

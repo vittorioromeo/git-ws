@@ -38,7 +38,7 @@ namespace ssvcl
 	string Cmd::getNamesString() const
 	{
 		string result{"<"};
-		for(unsigned int i{0}; i < names.size(); ++i)
+		for(auto i(0u); i < names.size(); ++i)
 		{
 			result.append(names[i]);
 			if(i < names.size() - 1) result.append(" || ");
@@ -49,7 +49,7 @@ namespace ssvcl
 	string Cmd::getArgsString() const
 	{
 		string result;
-		for(unsigned int i{0}; i < args.size(); ++i)
+		for(auto i(0u); i < args.size(); ++i)
 		{
 			result.append(args[i]->getUsageString());
 			if(i < args.size() - 1) result.append(" ");
@@ -59,7 +59,7 @@ namespace ssvcl
 	string Cmd::getOptArgsString() const
 	{
 		string result;
-		for(unsigned int i{0}; i < optArgs.size(); ++i)
+		for(auto i(0u); i < optArgs.size(); ++i)
 		{
 			result.append(optArgs[i]->getUsageString());
 			if(i < optArgs.size() - 1) result.append(" ");
@@ -69,7 +69,7 @@ namespace ssvcl
 	string Cmd::getArgPacksString() const
 	{
 		string result;
-		for(unsigned int i{0}; i < argPacks.size(); ++i)
+		for(auto i(0u); i < argPacks.size(); ++i)
 		{
 			result.append(argPacks[i]->getUsageString());
 			if(i < argPacks.size() - 1) result.append(" ");
@@ -79,7 +79,7 @@ namespace ssvcl
 	string Cmd::getFlagsString() const
 	{
 		string result;
-		for(unsigned int i{0}; i < flags.size(); ++i)
+		for(auto i(0u); i < flags.size(); ++i)
 		{
 			result.append(flags[i]->getUsageString());
 			if(i < flags.size() - 1) result.append(" ");

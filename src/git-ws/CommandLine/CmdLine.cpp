@@ -54,7 +54,7 @@ namespace ssvcl
 
 		// Find args, put them in cArgs
 		vector<string> cArgs;
-		for(unsigned int i{cmd.getArgCount()}; i > 0; --i)
+		for(auto i(cmd.getArgCount()); i > 0; --i)
 		{
 			if(args.empty()) throw runtime_error("Incorrect number of args for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
 			cArgs.push_back(args.front());
@@ -63,7 +63,7 @@ namespace ssvcl
 
 		// Remaining string in args must be optargs
 		vector<string> cOptArgs;
-		for(unsigned int i{cmd.getOptArgCount()}; i > 0; --i)
+		for(auto i(cmd.getOptArgCount()); i > 0; --i)
 		{
 			if(args.empty()) break;
 			cOptArgs.push_back(args.front());
@@ -72,7 +72,7 @@ namespace ssvcl
 		}
 
 		// Check for argpacks
-		for(unsigned int i{0}; i < cmd.getArgPackCount(); ++i)
+		for(auto i(0u); i < cmd.getArgPackCount(); ++i)
 		{
 			auto& argPack(*cmd.getArgPacks()[i]);
 			vector<string> toPack;
@@ -87,7 +87,7 @@ namespace ssvcl
 				if(args.size() < argPack.getMin()) throw runtime_error("Not enough args for finite argpack");
 
 				unsigned int clampedCount{getClamped<unsigned int>(args.size(), 0, argPack.getMax())};
-				for(unsigned int iS{0}; iS < clampedCount; ++iS) { toPack.push_back(args.front()); args.pop_front(); }
+				for(auto iS(0u); iS < clampedCount; ++iS) { toPack.push_back(args.front()); args.pop_front(); }
 			}
 
 			argPack.set(toPack);
@@ -96,8 +96,8 @@ namespace ssvcl
 
 		if(!args.empty()) throw runtime_error("Too many arguments!");
 
-		for(unsigned int i{0}; i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
-		for(unsigned int i{0}; i < cOptArgs.size(); ++i) cmd.setOptArgValue(i, cOptArgs[i]);
+		for(auto i(0u); i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
+		for(auto i(0u); i < cOptArgs.size(); ++i) cmd.setOptArgValue(i, cOptArgs[i]);
 		for(const auto& f : cFlags) cmd.activateFlag(f);
 		cmd();
 	}

@@ -44,7 +44,7 @@ namespace ssvcl
 		vector<string> cFlags;
 		for(const auto& s : args)
 		{
-			if(startsWith(s, flagPrefixShort) || startsWith(s, flagPrefixLong))
+			if(beginsWith(s, flagPrefixShort) || beginsWith(s, flagPrefixLong))
 			{
 				cFlags.push_back(s);
 				if(cFlags.size() > cmd.getFlagCount()) throw runtime_error("Incorrect number of flags for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getFlagCount()) + "'");

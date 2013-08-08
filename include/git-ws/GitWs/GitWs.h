@@ -72,7 +72,7 @@ namespace gitws
 			}
 			inline bool getSubmodulesBehind() const
 			{
-				for(const auto& s : runGetFetchSM()) { if(ssvu::startsWith(s, "Entering")) continue; return true; }
+				for(const auto& s : runGetFetchSM()) { if(ssvu::beginsWith(s, "Entering")) continue; return true; }
 				return false;
 			}
 	};

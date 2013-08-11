@@ -34,14 +34,15 @@ namespace ssvcl
 	Cmd& CmdLine::create(const initializer_list<string>& mNames) { auto result(new Cmd{mNames}); cmds.emplace_back(result); return *result; }
 	void CmdLine::parseCmdLine(const vector<string>& mArgs)
 	{
-		deque<string> args{begin(mArgs), end(mArgs)};
+		deque<string> entered{begin(mArgs), end(mArgs)};
 
-		Cmd& cmd(findCmd(args.front()));
-		args.pop_front();
+		// args.front() is expected to be the command name
+		Cmd& cmd(findCmd(entered.front()));
+		entered.pop_front();
 
 		// Find all flags, put them in cFlags, remove them from mArgs
 		vector<string> cFlags;
-		for(const auto& s : args)
+		for(const auto& s : entered)
 		{
 			if(beginsWith(s, flagPrefixShort) || beginsWith(s, flagPrefixLong))
 			{
@@ -49,25 +50,25 @@ namespace ssvcl
 				if(cFlags.size() > cmd.getFlagCount()) throw runtime_error("Incorrect number of flags for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getFlagCount()) + "'");
 			}
 		}
-		for(const auto& f : cFlags) eraseRemove(args, f);
+		for(const auto& f : cFlags) eraseRemove(entered, f);
 
 		// Find args, put them in cArgs
 		vector<string> cArgs;
 		for(auto i(cmd.getArgCount()); i > 0; --i)
 		{
-			if(args.empty()) throw runtime_error("Incorrect number of args for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
-			cArgs.push_back(args.front());
-			args.pop_front();
+			if(entered.empty()) throw runtime_error("Incorrect number of args for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
+			cArgs.push_back(entered.front());
+			entered.pop_front();
 		}
 
 		// Remaining string in args must be optargs
 		vector<string> cOptArgs;
 		for(auto i(cmd.getOptArgCount()); i > 0; --i)
 		{
-			if(args.empty()) break;
-			cOptArgs.push_back(args.front());
+			if(entered.empty()) break;
+			cOptArgs.push_back(entered.front());
 			if(cOptArgs.size() > cmd.getOptArgCount()) throw runtime_error("Incorrect number of optargs for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getOptArgCount()) + "'");
-			args.pop_front();
+			entered.pop_front();
 		}
 
 		// Check for argpacks
@@ -79,20 +80,21 @@ namespace ssvcl
 			if(argPack.isInfinite())
 			{
 				if(i != cmd.getArgPackCount() -1) throw runtime_error("Infinite argpacks must be last");
-				while(!args.empty()) { toPack.push_back(args.front()); args.pop_front(); }
+				while(!entered.empty()) { toPack.push_back(entered.front()); entered.pop_front(); }
 			}
 			else
 			{
-				if(args.size() < argPack.getMin()) throw runtime_error("Not enough args for finite argpack");
+				if(entered.size() < argPack.getMin()) throw runtime_error("Not enough args for finite argpack");
 
-				unsigned int clampedCount{getClamped<unsigned int>(args.size(), 0, argPack.getMax())};
-				for(auto iS(0u); iS < clampedCount; ++iS) { toPack.push_back(args.front()); args.pop_front(); }
+				unsigned int clampedCount{getClamped<unsigned int>(entered.size(), 0, argPack.getMax())};
+				for(auto iS(0u); iS < clampedCount; ++iS) { toPack.push_back(entered.front()); entered.pop_front(); }
 			}
 
 			argPack.set(toPack);
 		}
 
-		if(!args.empty()) throw runtime_error("Too many arguments!");
+		// If there still stuff left, there are too many arguments!
+		if(!entered.empty()) throw runtime_error("Too many arguments!");
 
 		for(auto i(0u); i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
 		for(auto i(0u); i < cOptArgs.size(); ++i) cmd.setOptArgValue(i, cOptArgs[i]);

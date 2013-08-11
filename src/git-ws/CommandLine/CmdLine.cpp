@@ -5,7 +5,6 @@
 #include <deque>
 #include <stdexcept>
 #include <limits>
-#include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/Cmd.h"
 #include "git-ws/CommandLine/Elements/Flag.h"
 #include "git-ws/CommandLine/CmdLine.h"
@@ -32,7 +31,7 @@ namespace ssvcl
 
 		throw runtime_error("No command with name <" + mName + ">\nDid you mean <" + closestMatch.second + ">?");
 	}
-	Cmd& CmdLine::create(const initializer_list<string>& mNames) { auto result(new Cmd{mNames}); cmds.push_back(result); return *result; }
+	Cmd& CmdLine::create(const initializer_list<string>& mNames) { auto result(new Cmd{mNames}); cmds.emplace_back(result); return *result; }
 	void CmdLine::parseCmdLine(const vector<string>& mArgs)
 	{
 		deque<string> args{begin(mArgs), end(mArgs)};
@@ -47,7 +46,7 @@ namespace ssvcl
 			if(beginsWith(s, flagPrefixShort) || beginsWith(s, flagPrefixLong))
 			{
 				cFlags.push_back(s);
-				if(cFlags.size() > cmd.getFlagCount()) throw runtime_error("Incorrect number of flags for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getFlagCount()) + "'");
+				if(cFlags.size() > cmd.getFlagCount()) throw runtime_error("Incorrect number of flags for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getFlagCount()) + "'");
 			}
 		}
 		for(const auto& f : cFlags) eraseRemove(args, f);
@@ -56,7 +55,7 @@ namespace ssvcl
 		vector<string> cArgs;
 		for(auto i(cmd.getArgCount()); i > 0; --i)
 		{
-			if(args.empty()) throw runtime_error("Incorrect number of args for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
+			if(args.empty()) throw runtime_error("Incorrect number of args for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getArgCount()) + "'");
 			cArgs.push_back(args.front());
 			args.pop_front();
 		}
@@ -67,7 +66,7 @@ namespace ssvcl
 		{
 			if(args.empty()) break;
 			cOptArgs.push_back(args.front());
-			if(cOptArgs.size() > cmd.getOptArgCount()) throw runtime_error("Incorrect number of optargs for command " + cmd.getNamesString() + " , correct number is '" + toStr(cmd.getOptArgCount()) + "'");
+			if(cOptArgs.size() > cmd.getOptArgCount()) throw runtime_error("Incorrect number of optargs for command " + cmd.getNamesStr() + " , correct number is '" + toStr(cmd.getOptArgCount()) + "'");
 			args.pop_front();
 		}
 
@@ -93,7 +92,6 @@ namespace ssvcl
 			argPack.set(toPack);
 		}
 
-
 		if(!args.empty()) throw runtime_error("Too many arguments!");
 
 		for(auto i(0u); i < cArgs.size(); ++i) cmd.setArgValue(i, cArgs[i]);
@@ -101,5 +99,4 @@ namespace ssvcl
 		for(const auto& f : cFlags) cmd.activateFlag(f);
 		cmd();
 	}
-	const vector<Cmd*>& CmdLine::getCmds() const { return cmds; }
 }

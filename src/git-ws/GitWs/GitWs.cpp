@@ -15,8 +15,7 @@ using namespace ssvcl;
 
 namespace gitws
 {
-
-	string getBriefHelp(const Cmd& mCmd) { return mCmd.getNamesString() + " " + mCmd.getArgsString() + " " + mCmd.getOptArgsString() + " " + mCmd.getFlagsString() + " " + mCmd.getArgPacksString(); }
+	string getBriefHelp(const Cmd& mCmd) { return mCmd.getNamesStr() + " " + mCmd.getArgsStr() + " " + mCmd.getOptArgsStr() + " " + mCmd.getFlagsStr() + " " + mCmd.getArgPacksStr(); }
 
 	void GitWs::runInRepos(const vector<Repo>& mRepos, const string& mCommand, bool mPrintEmpty)
 	{
@@ -49,11 +48,11 @@ namespace gitws
 			if(!optArg)
 			{
 				lo << lt("git-ws help") << endl << endl;
-				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << endl << (flagVerbose ? c->getHelpString() : "");
+				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << endl << (flagVerbose ? c->getHelpStr() : "");
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
-			lo << endl << getBriefHelp(c) << endl << c.getHelpString();
+			lo << endl << getBriefHelp(c) << endl << c.getHelpStr();
 		};
 	}
 	void GitWs::initCmdPush()

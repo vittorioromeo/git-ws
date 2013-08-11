@@ -9,6 +9,7 @@
 #include <vector>
 #include <functional>
 #include <memory>
+#include <SSVUtils/SSVUtils.h>
 
 namespace ssvcl
 {
@@ -23,53 +24,51 @@ namespace ssvcl
 	{
 		private:
 			std::vector<std::string> names;
-			std::vector<std::unique_ptr<ArgBase>> args; // owned
-			std::vector<std::unique_ptr<ArgBase>> optArgs; // owned
-			std::vector<std::unique_ptr<ArgPackBase>> argPacks; // owned
-			std::vector<std::unique_ptr<Flag>> flags; // owned
+			std::vector<ssvu::Uptr<ArgBase>> args; // owned
+			std::vector<ssvu::Uptr<ArgBase>> optArgs; // owned
+			std::vector<ssvu::Uptr<ArgPackBase>> argPacks; // owned
+			std::vector<ssvu::Uptr<Flag>> flags; // owned
 			std::function<void()> func;
 			std::string description;
 
 			Flag& findFlag(const std::string& mName);
 
 		public:
-			Cmd(const std::initializer_list<std::string>& mNames);
+			Cmd(const std::initializer_list<std::string>& mNames) : names{mNames} { }
 
-			Cmd& operator+=(std::function<void()> mFunc);
-			Cmd& operator()();
+			inline Cmd& operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
+			inline Cmd& operator()() { func(); return *this; }
 
-			template<typename T> Arg<T>& createArg() { auto result(new Arg<T>()); args.push_back(std::unique_ptr<Arg<T>>(result)); return *result; }
-			template<typename T> OptArg<T>& createOptArg(T mDefaultValue) { auto result(new OptArg<T>(mDefaultValue)); optArgs.push_back(std::unique_ptr<OptArg<T>>(result)); return *result; }
+			template<typename T> inline Arg<T>& createArg()														{ auto result(new Arg<T>()); args.emplace_back(result); return *result; }
+			template<typename T> inline OptArg<T>& createOptArg(T mDefaultValue)								{ auto result(new OptArg<T>(mDefaultValue)); optArgs.emplace_back(result); return *result; }
+			template<typename T> inline ArgPack<T>& createFiniteArgPack(unsigned int mMin, unsigned int mMax)	{ auto result(new ArgPack<T>(mMin, mMax)); argPacks.emplace_back(result); return *result; }
+			template<typename T> inline ArgPack<T>& createInfiniteArgPack()										{ auto result(new ArgPack<T>); argPacks.emplace_back(result); return *result; }
 			Flag& createFlag(const std::string& mShortName, const std::string& mLongName);
-			template<typename T> ArgPack<T>& createFiniteArgPack(unsigned int mMin, unsigned int mMax) { auto result(new ArgPack<T>(mMin, mMax)); argPacks.push_back(std::unique_ptr<ArgPack<T>>(result)); return *result; }
-			template<typename T> ArgPack<T>& createInfiniteArgPack() { auto result(new ArgPack<T>); argPacks.push_back(std::unique_ptr<ArgPack<T>>(result)); return *result; }
 
 			void setArgValue(unsigned int mIndex, const std::string& mValue);
 			void setOptArgValue(unsigned int mIndex, const std::string& mValue);
 			void setArgPackValues(unsigned int mIndex, const std::vector<std::string>& mValues);
 
+			bool isFlagActive(unsigned int mIndex) const;
 			void activateFlag(const std::string& mName);
 
-			bool hasName(const std::string& mName) const;
-			bool isFlagActive(unsigned int mIndex) const;
+			inline bool hasName(const std::string& mName) const		{ return ssvu::contains(names, mName); }
+			inline unsigned int getArgCount() const					{ return args.size(); }
+			inline unsigned int getOptArgCount() const				{ return optArgs.size(); }
+			inline unsigned int getArgPackCount() const				{ return argPacks.size(); }
+			inline unsigned int getFlagCount() const				{ return flags.size(); }
+			inline const decltype(names)& getNames() const			{ return names; }
+			inline const decltype(args)& getArgs() const			{ return args; }
+			inline const decltype(optArgs)& getOptArgs() const		{ return optArgs; }
+			inline const decltype(argPacks)& getArgPacks() const	{ return argPacks; }
+			inline const decltype(flags)& getFlags() const			{ return flags; }
 
-			inline unsigned int getArgCount() const										{ return args.size(); }
-			inline unsigned int getOptArgCount() const									{ return optArgs.size(); }
-			inline unsigned int getArgPackCount() const									{ return argPacks.size(); }
-			inline unsigned int getFlagCount() const									{ return flags.size(); }
-			inline const std::vector<std::string>& getNames() const						{ return names; }
-			inline const std::vector<std::unique_ptr<ArgBase>>& getArgs() const			{ return args; }
-			inline const std::vector<std::unique_ptr<ArgBase>>& getOptArgs() const		{ return optArgs; }
-			inline const std::vector<std::unique_ptr<ArgPackBase>>& getArgPacks() const	{ return argPacks; }
-			inline const std::vector<std::unique_ptr<Flag>>& getFlags() const			{ return flags; }
-
-			std::string getNamesString() const;
-			std::string getArgsString() const;
-			std::string getOptArgsString() const;
-			std::string getArgPacksString() const;
-			std::string getFlagsString() const;
-
-			std::string getHelpString() const;
+			std::string getNamesStr() const;
+			std::string getArgsStr() const;
+			std::string getOptArgsStr() const;
+			std::string getArgPacksStr() const;
+			std::string getFlagsStr() const;
+			std::string getHelpStr() const;
 
 			inline void setDescription(const std::string& mDescription)	{ description = mDescription; }
 			inline const std::string& getDescription() const			{ return description; }

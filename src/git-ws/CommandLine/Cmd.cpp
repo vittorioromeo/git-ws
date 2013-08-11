@@ -2,7 +2,6 @@
 // License: Academic Free License ("AFL") v. 3.0
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
-#include <SSVUtils/SSVUtils.h>
 #include "git-ws/CommandLine/Elements/Bases/ArgBase.h"
 #include "git-ws/CommandLine/Elements/Bases/ArgPackBase.h"
 #include "git-ws/CommandLine/Elements/Arg.h"
@@ -17,25 +16,18 @@ namespace ssvcl
 	Flag& Cmd::findFlag(const string& mName)
 	{
 		for(const auto& f : flags) if(f->hasName(mName)) return *f;
-		throw runtime_error("No flag with name '" + mName + "' in command " + getNamesString());
+		throw runtime_error("No flag with name '" + mName + "' in command " + getNamesStr());
 	}
 
-	Cmd::Cmd(const initializer_list<string>& mNames) : names{mNames} { }
-
-	Cmd& Cmd::operator()() { func(); return *this; }
-	Cmd& Cmd::operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
-
-	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.push_back(unique_ptr<Flag>(result)); return *result; }
+	Flag& Cmd::createFlag(const string& mShortName, const string& mLongName) { auto result(new Flag{mShortName, mLongName}); flags.emplace_back(result); return *result; }
 
 	void Cmd::setArgValue(unsigned int mIndex, const string& mValue)	{ args[mIndex]->set(mValue); }
 	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue)	{ optArgs[mIndex]->set(mValue); }
 
 	void Cmd::activateFlag(const string& mName) { findFlag(mName) = true; }
-
-	bool Cmd::hasName(const string& mName) const		{ return contains(names, mName); }
 	bool Cmd::isFlagActive(unsigned int mIndex) const	{ return *flags[mIndex]; }
 
-	string Cmd::getNamesString() const
+	string Cmd::getNamesStr() const
 	{
 		string result{"<"};
 		for(auto i(0u); i < names.size(); ++i)
@@ -46,7 +38,7 @@ namespace ssvcl
 		result.append(">");
 		return result;
 	}
-	string Cmd::getArgsString() const
+	string Cmd::getArgsStr() const
 	{
 		string result;
 		for(auto i(0u); i < args.size(); ++i)
@@ -56,7 +48,7 @@ namespace ssvcl
 		}
 		return result;
 	}
-	string Cmd::getOptArgsString() const
+	string Cmd::getOptArgsStr() const
 	{
 		string result;
 		for(auto i(0u); i < optArgs.size(); ++i)
@@ -66,7 +58,7 @@ namespace ssvcl
 		}
 		return result;
 	}
-	string Cmd::getArgPacksString() const
+	string Cmd::getArgPacksStr() const
 	{
 		string result;
 		for(auto i(0u); i < argPacks.size(); ++i)
@@ -76,7 +68,7 @@ namespace ssvcl
 		}
 		return result;
 	}
-	string Cmd::getFlagsString() const
+	string Cmd::getFlagsStr() const
 	{
 		string result;
 		for(auto i(0u); i < flags.size(); ++i)
@@ -86,16 +78,11 @@ namespace ssvcl
 		}
 		return result;
 	}
-
-	string Cmd::getHelpString() const
+	string Cmd::getHelpStr() const
 	{
 		string result;
 
-		if(!description.empty())
-		{
-			result += ">>" + description;
-			result += "\n\n";
-		}
+		if(!description.empty()) result += ">>" + description + "\n\n";
 
 		if(!args.empty()) result += "\t" "Required arguments:" "\n";
 		for(const auto& a : args) result += a->getHelpString();

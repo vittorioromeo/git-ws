@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <SSVUtils/SSVUtils.h>
 
 namespace ssvcl
 {
@@ -15,13 +16,13 @@ namespace ssvcl
 	class CmdLine
 	{
 		private:
-			std::vector<Cmd*> cmds;
+			std::vector<ssvu::Uptr<Cmd>> cmds;
 
 		public:
 			Cmd& findCmd(const std::string& mName) const;
 			Cmd& create(const std::initializer_list<std::string>& mNames);
 			void parseCmdLine(const std::vector<std::string>& mArgs);
-			const std::vector<Cmd*>& getCmds() const;
+			inline const decltype(cmds)& getCmds() const { return cmds; }
 	};
 }
 

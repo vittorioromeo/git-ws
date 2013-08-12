@@ -19,7 +19,8 @@ namespace gitws
 			enum class Status{None, CanCommit, DirtySM};
 
 		private:
-			std::string path, branch;
+			ssvu::FileSystem::Path path;
+			std::string branch;
 
 			inline std::string runGetBranch() const							{ return run("git rev-parse --abbrev-ref HEAD")[0]; }
 			inline std::string runRevList(const std::string& mBranch) const	{ return run("git rev-list HEAD...origin/" + mBranch + " --ignore-submodules --count")[0]; }
@@ -31,12 +32,12 @@ namespace gitws
 			}
 
 		public:
-			Repo(const std::string& mPath) : path{mPath}, branch{runGetBranch()} { }
+			Repo(const ssvu::FileSystem::Path& mPath) : path{mPath}, branch{runGetBranch()} { }
 
 			inline std::vector<std::string> run(const std::string& mString) const
 			{
 				std::vector<std::string> result;
-				std::string toRun{"(cd " + path + ";" + mString + ")"}, file;
+				std::string toRun{"(cd " + path.getStr() + ";" + mString + ")"}, file;
 				FILE* pipe{popen(toRun.c_str(), "r")};
 				char buffer[1000];
 				while(fgets(buffer, sizeof(buffer), pipe) != NULL)
@@ -59,8 +60,8 @@ namespace gitws
 			}
 			inline void runSMPush() const { run("git commit -am 'automated submodule update'; git push"); }
 
-			inline const std::string& getPath() const	{ return path; }
-			inline const std::string& getBranch() const	{ return branch; }
+			inline const ssvu::FileSystem::Path& getPath() const	{ return path; }
+			inline const std::string& getBranch() const				{ return branch; }
 
 			inline bool canPush() const { return std::stoi(runRevList(branch)) > 0; }
 			inline bool canPull() const { return !runGetFetch().empty(); }

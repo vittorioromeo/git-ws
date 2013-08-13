@@ -5,8 +5,10 @@
 #ifndef GITWS_COMMANDLINE_PARSER
 #define GITWS_COMMANDLINE_PARSER
 
+#include <vector>
 #include <string>
 #include <stdexcept>
+#include <SSVUtils/SSVUtils.h>
 
 namespace ssvcl
 {
@@ -22,6 +24,15 @@ namespace ssvcl
 	template<> struct Parser<std::string>
 	{
 		inline static std::string parse(const std::string& mString) { return mString; }
+	};
+	template<> struct Parser<bool>
+	{
+		static std::vector<std::string> trueValues{"y", "yes", "on", "true", "1"};
+		static std::vector<std::string> falseValues{"n", "no", "off", "false", "0"};
+		inline static std::string parse(const std::string& mString)
+		{
+			return mString;
+		}
 	};
 }
 

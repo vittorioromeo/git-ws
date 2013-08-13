@@ -11,7 +11,7 @@
 using namespace std;
 using namespace ssvu;
 using namespace ssvu::FileSystem;
-using namespace ssvcl;
+using namespace ssvu::CommandLine;
 
 namespace gitws
 {

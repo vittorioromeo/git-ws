@@ -9,7 +9,6 @@
 #include <vector>
 #include <functional>
 #include <SSVUtils/SSVUtils.h>
-#include "git-ws/CommandLine/CommandLine.h"
 
 namespace gitws
 {
@@ -82,7 +81,7 @@ namespace gitws
 	{
 		private:
 			std::vector<Repo> repos;
-			ssvcl::CmdLine cmdLine;
+			ssvu::CommandLine::CmdLine cmdLine;
 
 			inline std::vector<Repo> getBehindSMRepos() const
 			{

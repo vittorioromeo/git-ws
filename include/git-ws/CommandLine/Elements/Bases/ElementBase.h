@@ -12,35 +12,29 @@ namespace ssvcl
 	class ElementBase
 	{
 		private:
-			std::string name;
-			std::string briefDescription;
-			std::string description;
+			std::string name, briefDesc, desc;
 
 		public:
 			virtual ~ElementBase() { }
 
-			inline void setName(const std::string& mName)							{ name = mName; }
-			inline void setBriefDescription(const std::string& mBriefDescription)	{ briefDescription = mBriefDescription; }
-			inline void setDescription(const std::string& mDescription)				{ description = mDescription; }
+			inline void setName(const std::string& mName)					{ name = mName; }
+			inline void setBriefDesc(const std::string& mBriefDescription)	{ briefDesc = mBriefDescription; }
+			inline void setDesc(const std::string& mDescription)			{ desc = mDescription; }
 
-			inline const std::string& getName() const				{ return name; }
-			inline const std::string& getBriefDescription() const	{ return briefDescription; }
-			inline const std::string& getDescription() const		{ return description; }
-			inline virtual std::string getUsageString() const		{ return ""; }
-			inline std::string getHelpString()
+			inline const std::string& getName() const		{ return name; }
+			inline const std::string& getBriefDesc() const	{ return briefDesc; }
+			inline const std::string& getDesc() const		{ return desc; }
+			inline virtual std::string getUsageStr() const	{ return ""; }
+			inline std::string getHelpStr()
 			{
-				std::string result;
+				std::string result, usageStr{this->getUsageStr()};
 
-				std::string usageString{this->getUsageString()};
-				if(!usageString.empty()) result += "* " + usageString;
-
+				if(!usageStr.empty()) result += "* " + usageStr;
 				if(!name.empty()) result += "\n  --" + name;
-				if(!briefDescription.empty()) result += "\n  --" + briefDescription;
-				if(!description.empty()) result += "\n  --" + description;
+				if(!briefDesc.empty()) result += "\n  --" + briefDesc;
+				if(!desc.empty()) result += "\n  --" + desc;
 
-				result += "\n\n";
-
-				return result;
+				return result + "\n\n";
 			}
 	};
 }

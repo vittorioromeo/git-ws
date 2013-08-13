@@ -24,12 +24,12 @@ namespace ssvcl
 	{
 		private:
 			std::vector<std::string> names;
-			std::vector<ssvu::Uptr<ArgBase>> args; // owned
-			std::vector<ssvu::Uptr<ArgBase>> optArgs; // owned
-			std::vector<ssvu::Uptr<ArgPackBase>> argPacks; // owned
-			std::vector<ssvu::Uptr<Flag>> flags; // owned
+			std::vector<ssvu::Uptr<ArgBase>> args;
+			std::vector<ssvu::Uptr<ArgBase>> optArgs;
+			std::vector<ssvu::Uptr<ArgPackBase>> argPacks;
+			std::vector<ssvu::Uptr<Flag>> flags;
 			std::function<void()> func;
-			std::string description;
+			std::string desc;
 
 			Flag& findFlag(const std::string& mName);
 
@@ -39,10 +39,10 @@ namespace ssvcl
 			inline Cmd& operator+=(std::function<void()> mFunc) { func = mFunc; return *this; }
 			inline Cmd& operator()() { func(); return *this; }
 
-			template<typename T> inline Arg<T>& createArg()														{ auto result(new Arg<T>()); args.emplace_back(result); return *result; }
-			template<typename T> inline OptArg<T>& createOptArg(T mDefaultValue)								{ auto result(new OptArg<T>(mDefaultValue)); optArgs.emplace_back(result); return *result; }
-			template<typename T> inline ArgPack<T>& createFiniteArgPack(unsigned int mMin, unsigned int mMax)	{ auto result(new ArgPack<T>(mMin, mMax)); argPacks.emplace_back(result); return *result; }
-			template<typename T> inline ArgPack<T>& createInfiniteArgPack()										{ auto result(new ArgPack<T>); argPacks.emplace_back(result); return *result; }
+			template<typename T> inline Arg<T>& createArg()												{ auto result(new Arg<T>()); args.emplace_back(result); return *result; }
+			template<typename T> inline OptArg<T>& createOptArg(const T& mDefaultValue)					{ auto result(new OptArg<T>(mDefaultValue)); optArgs.emplace_back(result); return *result; }
+			template<typename T> inline ArgPack<T>& createArgPack(unsigned int mMin, unsigned int mMax)	{ auto result(new ArgPack<T>(mMin, mMax)); argPacks.emplace_back(result); return *result; }
+			template<typename T> inline ArgPack<T>& createInfiniteArgPack()								{ auto result(new ArgPack<T>); argPacks.emplace_back(result); return *result; }
 			Flag& createFlag(const std::string& mShortName, const std::string& mLongName);
 
 			void setArgValue(unsigned int mIndex, const std::string& mValue);
@@ -70,8 +70,8 @@ namespace ssvcl
 			std::string getFlagsStr() const;
 			std::string getHelpStr() const;
 
-			inline void setDescription(const std::string& mDescription)	{ description = mDescription; }
-			inline const std::string& getDescription() const			{ return description; }
+			inline void setDesc(const std::string& mDesc)	{ desc = mDesc; }
+			inline const std::string& getDesc() const		{ return desc; }
 	};
 }
 

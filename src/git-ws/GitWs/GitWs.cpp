@@ -33,15 +33,15 @@ namespace gitws
 	void GitWs::initCmdHelp()
 	{
 		auto& cmd(cmdLine.create({"?", "help"}));
-		cmd.setDescription("Show help for all commands or a single command.");
+		cmd.setDesc("Show help for all commands or a single command.");
 
 		auto& optArg(cmd.createOptArg<string>(""));
 		optArg.setName("Command name");
-		optArg.setBriefDescription("Name of the command to get help for.");
-		optArg.setDescription("Leave blank to get general help.");
+		optArg.setBriefDesc("Name of the command to get help for.");
+		optArg.setDesc("Leave blank to get general help.");
 
 		auto& flagVerbose(cmd.createFlag("v", "verbose"));
-		flagVerbose.setBriefDescription("Verbose general help?");
+		flagVerbose.setBriefDesc("Verbose general help?");
 
 		cmd += [&]
 		{
@@ -58,13 +58,13 @@ namespace gitws
 	void GitWs::initCmdPush()
 	{
 		auto& cmd(cmdLine.create({"push"}));
-		cmd.setDescription("Pushes every git repo.");
+		cmd.setDesc("Pushes every git repo.");
 
 		auto& flagForce(cmd.createFlag("f", "force"));
-		flagForce.setBriefDescription("Forced push?");
+		flagForce.setBriefDesc("Forced push?");
 
 		auto& flagAll(cmd.createFlag("a", "all"));
-		flagAll.setBriefDescription("Run the command in all repos (even non-ahead ones), for all branches.");
+		flagAll.setBriefDesc("Run the command in all repos (even non-ahead ones), for all branches.");
 
 		cmd += [&]
 		{
@@ -83,16 +83,16 @@ namespace gitws
 	void GitWs::initCmdPull()
 	{
 		auto& cmd(cmdLine.create({"pull"}));
-		cmd.setDescription("Pulls every git repo.");
+		cmd.setDesc("Pulls every git repo.");
 
 		auto& flagStash(cmd.createFlag("s", "stash"));
-		flagStash.setBriefDescription("Stash all changes before pulling?");
+		flagStash.setBriefDesc("Stash all changes before pulling?");
 
 		auto& flagForce(cmd.createFlag("f", "force-checkout"));
-		flagForce.setBriefDescription("Run a force checkout before pulling?");
+		flagForce.setBriefDesc("Run a force checkout before pulling?");
 
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
-		flagChanged.setBriefDescription("Run the command only in folders where repos have changes?");
+		flagChanged.setBriefDesc("Run the command only in folders where repos have changes?");
 
 		cmd += [&]
 		{
@@ -105,15 +105,15 @@ namespace gitws
 	void GitWs::initCmdSubmodule()
 	{
 		auto& cmd(cmdLine.create({"sub", "submodule"}));
-		cmd.setDescription("Work with git submodules in every repo with dirty submodules.");
+		cmd.setDesc("Work with git submodules in every repo with dirty submodules.");
 
 		auto& arg(cmd.createArg<string>());
 		arg.setName("Action");
-		arg.setBriefDescription("Action to run for every submodule. Can be 'pull' or 'au'.");
-		arg.setDescription("'pull' recursively pulls the latest submodules from the remote, discarding any change.\n'au' calls 'pull' then pushes in succession.");
+		arg.setBriefDesc("Action to run for every submodule. Can be 'pull' or 'au'.");
+		arg.setDesc("'pull' recursively pulls the latest submodules from the remote, discarding any change.\n'au' calls 'pull' then pushes in succession.");
 
 		auto& flagAll(cmd.createFlag("a", "all"));
-		flagAll.setBriefDescription("Run the command in all repos?");
+		flagAll.setBriefDesc("Run the command in all repos?");
 
 		cmd += [&]
 		{
@@ -126,20 +126,20 @@ namespace gitws
 	void GitWs::initCmdStatus()
 	{
 		auto& cmd(cmdLine.create({"st", "status"}));
-		cmd.setDescription("Prints the status of all repos.");
+		cmd.setDesc("Prints the status of all repos.");
 
 		auto& showAllFlag(cmd.createFlag("a", "all"));
-		showAllFlag.setBriefDescription("Print empty messages?");
+		showAllFlag.setBriefDesc("Print empty messages?");
 
 		cmd += [&]{ runInRepos(repos, "git status -s --ignore-submodules=dirty", showAllFlag); };
 	}
 	void GitWs::initCmdGitg()
 	{
 		auto& cmd(cmdLine.create({"gitg"}));
-		cmd.setDescription("Open the gitg gui application in every repo folder.");
+		cmd.setDesc("Open the gitg gui application in every repo folder.");
 
 		auto& flagAll(cmd.createFlag("a", "all"));
-		flagAll.setBriefDescription("Run the command in all repos?");
+		flagAll.setBriefDesc("Run the command in all repos?");
 
 		cmd += [&]
 		{
@@ -150,18 +150,18 @@ namespace gitws
 	void GitWs::initCmdDo()
 	{
 		auto& cmd(cmdLine.create({"do"}));
-		cmd.setDescription("Runs a shell command in every repo folder.");
+		cmd.setDesc("Runs a shell command in every repo folder.");
 
 		auto& arg(cmd.createArg<string>());
 		arg.setName("Command to run");
-		arg.setBriefDescription("This is the command that will be called in every repo folder.");
-		arg.setDescription("Consider wrapping a more complex command with quotes.");
+		arg.setBriefDesc("This is the command that will be called in every repo folder.");
+		arg.setDesc("Consider wrapping a more complex command with quotes.");
 
 		auto& flagChanged(cmd.createFlag("c", "changed-only"));
-		flagChanged.setBriefDescription("Run the command only in folders where repos have changes?");
+		flagChanged.setBriefDesc("Run the command only in folders where repos have changes?");
 
 		auto& flagAhead(cmd.createFlag("a", "ahead-only"));
-		flagAhead.setBriefDescription("Run the command only in folders where repos are ahead of the remote?");
+		flagAhead.setBriefDesc("Run the command only in folders where repos are ahead of the remote?");
 
 		cmd += [&]
 		{
@@ -176,7 +176,7 @@ namespace gitws
 	void GitWs::initCmdQuery()
 	{
 		auto& cmd(cmdLine.create({"query"}));
-		cmd.setDescription("Queries the status of all the repos, returning whether they are changed or ahead.");
+		cmd.setDesc("Queries the status of all the repos, returning whether they are changed or ahead.");
 		cmd += [&]
 		{
 			vector<future<string>> futures;

@@ -25,7 +25,7 @@ namespace ssvcl
 	void Cmd::setOptArgValue(unsigned int mIndex, const string& mValue)	{ optArgs[mIndex]->set(mValue); }
 
 	void Cmd::activateFlag(const string& mName) { findFlag(mName) = true; }
-	bool Cmd::isFlagActive(unsigned int mIndex) const	{ return *flags[mIndex]; }
+	bool Cmd::isFlagActive(unsigned int mIndex) const { return *flags[mIndex]; }
 
 	string Cmd::getNamesStr() const
 	{
@@ -43,7 +43,7 @@ namespace ssvcl
 		string result;
 		for(auto i(0u); i < args.size(); ++i)
 		{
-			result.append(args[i]->getUsageString());
+			result.append(args[i]->getUsageStr());
 			if(i < args.size() - 1) result.append(" ");
 		}
 		return result;
@@ -53,7 +53,7 @@ namespace ssvcl
 		string result;
 		for(auto i(0u); i < optArgs.size(); ++i)
 		{
-			result.append(optArgs[i]->getUsageString());
+			result.append(optArgs[i]->getUsageStr());
 			if(i < optArgs.size() - 1) result.append(" ");
 		}
 		return result;
@@ -63,7 +63,7 @@ namespace ssvcl
 		string result;
 		for(auto i(0u); i < argPacks.size(); ++i)
 		{
-			result.append(argPacks[i]->getUsageString());
+			result.append(argPacks[i]->getUsageStr());
 			if(i < argPacks.size() - 1) result.append(" ");
 		}
 		return result;
@@ -73,7 +73,7 @@ namespace ssvcl
 		string result;
 		for(auto i(0u); i < flags.size(); ++i)
 		{
-			result.append(flags[i]->getUsageString());
+			result.append(flags[i]->getUsageStr());
 			if(i < flags.size() - 1) result.append(" ");
 		}
 		return result;
@@ -82,22 +82,22 @@ namespace ssvcl
 	{
 		string result;
 
-		if(!description.empty()) result += ">>" + description + "\n\n";
+		if(!desc.empty()) result += ">>" + desc + "\n\n";
 
 		if(!args.empty()) result += "\t" "Required arguments:" "\n";
-		for(const auto& a : args) result += a->getHelpString();
+		for(const auto& a : args) result += a->getHelpStr();
 		if(!args.empty()) result += "\n";
 
 		if(!optArgs.empty()) result += "\t" "Optional arguments:" "\n";
-		for(const auto& a : optArgs) result += a->getHelpString();
+		for(const auto& a : optArgs) result += a->getHelpStr();
 		if(!optArgs.empty()) result += "\n";
 
 		if(!argPacks.empty()) result += "\t" "Argument packs:" "\n";
-		for(const auto& p : argPacks) result += p->getHelpString();
+		for(const auto& p : argPacks) result += p->getHelpStr();
 		if(!argPacks.empty()) result += "\n";
 
 		if(!flags.empty()) result += "\t" "Flags:" "\n";
-		for(const auto& f : flags) result += f->getHelpString();
+		for(const auto& f : flags) result += f->getHelpStr();
 
 		return result;
 	}

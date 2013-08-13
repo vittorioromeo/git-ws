@@ -27,11 +27,13 @@ namespace ssvcl
 	};
 	template<> struct Parser<bool>
 	{
-		static std::vector<std::string> trueValues{"y", "yes", "on", "true", "1"};
-		static std::vector<std::string> falseValues{"n", "no", "off", "false", "0"};
-		inline static std::string parse(const std::string& mString)
+		inline static bool parse(const std::string& mString)
 		{
-			return mString;
+			std::vector<std::string> trueValues{"y", "yes", "on", "true", "1"};
+			std::vector<std::string> falseValues{"n", "no", "off", "false", "0"};
+			if(ssvu::contains(trueValues, ssvu::toLower(mString))) return true;
+			if(ssvu::contains(falseValues, ssvu::toLower(mString))) return false;
+			throw std::runtime_error("Cannot convert '" + mString + "' to bool");
 		}
 	};
 }

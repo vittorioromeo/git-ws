@@ -14,13 +14,8 @@ namespace ssvcl
 	{
 		public:
 			virtual ~ArgBase() { }
-
 			virtual void set(const std::string& mString) = 0;
-
-			inline std::string getUsageString() const override
-			{
-				return "(ARG " + getName() + ")";
-			}
+			inline std::string getUsageStr() const override { return "(ARG " + getName() + ")"; }
 	};
 }
 

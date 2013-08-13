@@ -30,7 +30,7 @@ namespace ssvcl
 			inline std::string getShortNameWithPrefix() const	{ return flagPrefixShort + shortName; }
 			inline std::string getLongNameWithPrefix() const	{ return flagPrefixLong + longName; }
 			inline bool hasName(const std::string& mName) const	{ return mName == getShortNameWithPrefix() || mName == getLongNameWithPrefix(); }
-			inline std::string getUsageString() const override
+			inline std::string getUsageStr() const override
 			{
 				return "[" + getShortNameWithPrefix() + " || " + getLongNameWithPrefix() + "]";
 			}

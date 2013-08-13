@@ -14,15 +14,13 @@ namespace ssvcl
 	template<typename T> class ArgPack : public ArgPackBase
 	{
 		private:
-			typedef typename std::vector<T>::iterator iterator;
-			typedef typename std::vector<T>::const_iterator const_iterator;
+			using Iterator = typename std::vector<T>::iterator;
+			using ConstIterator = typename std::vector<T>::const_iterator;
 
-			bool infinite;
-			unsigned int count;
 			std::vector<T> values;
 
 		public:
-			ArgPack() { }
+			ArgPack() = default;
 			ArgPack(unsigned int mMin, unsigned int mMax) : ArgPackBase{mMin, mMax} { }
 
 			inline void set(const std::vector<std::string>& mValues) override
@@ -30,12 +28,12 @@ namespace ssvcl
 				for(const auto& v : mValues) values.push_back(Parser<T>::parse(v));
 			}
 
-			inline iterator begin()					{ return values.begin(); }
-			inline iterator end()					{ return values.end(); }
-			inline const_iterator begin() const		{ return values.begin(); }
-			inline const_iterator end() const		{ return values.end(); }
-			inline const iterator cbegin() const	{ return values.cbegin(); }
-			inline const iterator cend() const		{ return values.cend(); }
+			inline Iterator begin()					{ return values.begin(); }
+			inline Iterator end()					{ return values.end(); }
+			inline ConstIterator begin() const		{ return values.begin(); }
+			inline ConstIterator end() const		{ return values.end(); }
+			inline const Iterator cbegin() const	{ return values.cbegin(); }
+			inline const Iterator cend() const		{ return values.cend(); }
 	};
 }
 

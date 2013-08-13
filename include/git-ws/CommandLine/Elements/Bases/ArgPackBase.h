@@ -14,7 +14,7 @@ namespace ssvcl
 {
 	class ArgPackBase : public ElementBase
 	{
-		private:
+		protected:
 			bool infinite;
 			unsigned int min, max;
 
@@ -25,10 +25,10 @@ namespace ssvcl
 
 			virtual void set(const std::vector<std::string>& mStrings) = 0;
 
-			inline bool isInfinite() const { return infinite; }
-			inline unsigned int getMin() const { return min; }
-			inline unsigned int getMax() const { return max; }
-			inline std::string getUsageString() const override
+			inline bool isInfinite() const		{ return infinite; }
+			inline unsigned int getMin() const	{ return min; }
+			inline unsigned int getMax() const	{ return max; }
+			inline std::string getUsageStr() const override
 			{
 				return "(PACK " + getName() + " " + "[" + ssvu::toStr(min) + "/" + (infinite ? "..." : ssvu::toStr(max)) + "])";
 			}

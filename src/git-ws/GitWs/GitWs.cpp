@@ -24,9 +24,9 @@ namespace gitws
 			vector<string> files{r.run(mCommand)};
 			if(files.empty() && !mPrintEmpty) continue;
 
-			lo << lt(r.getPath()) << endl;
+			lo(r.getPath()) << endl;
 			for(auto& f : files) lo << ">" << f << endl;
-			lo << lt("----") << endl << endl;
+			lo("----") << endl << endl;
 		}
 	}
 
@@ -47,7 +47,7 @@ namespace gitws
 		{
 			if(!optArg)
 			{
-				lo << lt("git-ws help") << endl << endl;
+				lo("git-ws help") << endl << endl;
 				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << endl << (flagVerbose ? c->getHelpStr() : "");
 			}
 

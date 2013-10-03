@@ -33,10 +33,10 @@ namespace gitws
 		public:
 			Repo(const ssvu::FileSystem::Path& mPath) : path{mPath}, branch{runGetBranch()} { }
 
-			inline std::vector<std::string> run(const std::string& mString) const
+			inline std::vector<std::string> run(const std::string& mStr) const
 			{
 				std::vector<std::string> result;
-				std::string toRun{"(cd " + path.getStr() + ";" + mString + ")"}, file;
+				std::string toRun{"(cd " + path.getStr() + ";" + mStr + ")"}, file;
 				FILE* pipe{popen(toRun.c_str(), "r")};
 				char buffer[1000];
 				while(fgets(buffer, sizeof(buffer), pipe) != NULL)

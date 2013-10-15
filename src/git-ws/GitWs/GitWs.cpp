@@ -25,8 +25,8 @@ namespace gitws
 			if(files.empty() && !mPrintEmpty) continue;
 
 			lo(r.getPath()) << endl;
-			for(auto& f : files) lo << ">" << f << endl;
-			lo("----") << endl << endl;
+			for(auto& f : files) lo << ">" << f << "\n";
+			lo("----") << "\n\n";
 		}
 	}
 
@@ -47,12 +47,13 @@ namespace gitws
 		{
 			if(!optArg)
 			{
-				lo("git-ws help") << endl << endl;
-				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << endl << (flagVerbose ? c->getHelpStr() : "");
+				lo("git-ws help") << "\n\n";
+				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << "\n" << (flagVerbose ? c->getHelpStr() : "");
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
-			lo << endl << getBriefHelp(c) << endl << c.getHelpStr();
+			lo << "\n" << getBriefHelp(c) << "\n" << c.getHelpStr();
+			lo.flush();
 		};
 	}
 	void GitWs::initCmdPush()

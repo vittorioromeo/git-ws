@@ -97,7 +97,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepos(flagChanged ? getChangedRepos() : repos);
+			auto currentRepos(flagChanged ? getChangedRepos(true) : repos);
 			if(flagStash) runInRepos(currentRepos, "git stash");
 			if(flagForce) runInRepos(currentRepos, "git checkout -f");
 			runInRepos(currentRepos, "git pull");
@@ -144,7 +144,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			auto currentRepos(flagAll ? repos : getChangedRepos());
+			auto currentRepos(flagAll ? repos : getChangedRepos(true));
 			runInRepos(currentRepos, "gitg -c&");
 		};
 	}
@@ -168,7 +168,7 @@ namespace gitws
 		{
 			if(flagChanged && flagAhead) { lo << "-c and -a are mutually exclusive" << endl; return; }
 
-			auto currentRepos(flagChanged ? getChangedRepos() : repos);
+			auto currentRepos(flagChanged ? getChangedRepos(true) : repos);
 			if(flagAhead) currentRepos = getAheadRepos();
 
 			runInRepos(currentRepos, arg.get());
@@ -190,11 +190,11 @@ namespace gitws
 					s << setw(25) << left << rd.getPath() << setw(15) << " ~ " + rd.getBranch() << flush;
 
 					{
-						auto a0 = async(launch::async, [&]{ if(rd.getStatus() == Repo::Status::CanCommit)	s << setw(15) << left << "(can commit)" << flush; });
-						auto a1 = async(launch::async, [&]{ if(rd.canPush())								s << setw(15) << left << "(can push)" << flush; });
-						auto a2 = async(launch::async, [&]{ if(rd.getStatus() == Repo::Status::DirtySM)		s << setw(15) << left << "(dirty submodules)" << flush; });
-						auto a3 = async(launch::async, [&]{ if(rd.canPull())								s << setw(15) << left << "(can pull)" << flush; });
-						auto a4 = async(launch::async, [&]{ if(rd.getSubmodulesBehind())					s << setw(15) << left << "(outdated submodules)"; });
+						auto a0 = async(launch::async, [&]{ if(rd.getStatus(true) == Repo::Status::CanCommit)	s << setw(15) << left << "(can commit)" << flush; });
+						auto a1 = async(launch::async, [&]{ if(rd.canPush())									s << setw(15) << left << "(can push)" << flush; });
+						auto a2 = async(launch::async, [&]{ if(rd.getStatus(false) == Repo::Status::DirtySM)	s << setw(15) << left << "(dirty submodules)" << flush; });
+						auto a3 = async(launch::async, [&]{ if(rd.canPull())									s << setw(15) << left << "(can pull)" << flush; });
+						auto a4 = async(launch::async, [&]{ if(rd.getSubmodulesBehind())						s << setw(15) << left << "(outdated submodules)"; });
 					}
 
 					return s.str();

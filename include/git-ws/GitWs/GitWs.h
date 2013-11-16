@@ -65,10 +65,11 @@ namespace gitws
 
 			inline bool canPush() const { return std::stoi(runRevList(branch)) > 0; }
 			inline bool canPull() const { return !runGetFetch().empty(); }
-			inline Status getStatus() const
+			inline bool canCommit() const { return !runHasDiffIndex(true); }
+			inline Status getStatus(bool mIgnoreSubmodules) const
 			{
 				if(!runHasDiffIndex(true)) return Status::CanCommit;
-				if(!runHasDiffIndex(false)) return Status::DirtySM;
+				if(!mIgnoreSubmodules && !runHasDiffIndex(false)) return Status::DirtySM;
 				return Status::None;
 			}
 			inline bool getSubmodulesBehind() const
@@ -89,12 +90,12 @@ namespace gitws
 				std::vector<Repo> result;
 				for(const auto& rd : repos)
 				{
-					const auto& cs(rd.getStatus());
+					const auto& cs(rd.getStatus(false));
 					if((rd.getSubmodulesBehind() || cs == Repo::Status::DirtySM) && cs != Repo::Status::CanCommit && !rd.canPush()) result.push_back(rd);
 				}
 				return result;
 			}
-			inline std::vector<Repo> getChangedRepos() const	{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.getStatus() == Repo::Status::CanCommit) result.push_back(rd); return result; }
+			inline std::vector<Repo> getChangedRepos(bool mIgnoreSubmodules) const	{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.getStatus(mIgnoreSubmodules) == Repo::Status::CanCommit) result.push_back(rd); return result; }
 			inline std::vector<Repo> getAheadRepos() const		{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.canPush()) result.push_back(rd); return result; }
 
 			void runInRepos(const std::vector<Repo>& mRepos, const std::string& mCommand, bool mPrintEmpty = false);

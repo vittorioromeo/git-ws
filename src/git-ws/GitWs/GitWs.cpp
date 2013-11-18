@@ -6,7 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <future>
-#include "git-ws/GitWs/GitWs.h"
+#include "git-ws/GitWs/GitWs.hpp"
 
 using namespace std;
 using namespace ssvu;

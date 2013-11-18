@@ -6,7 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <SSVUtils/Log/Log.hpp>
-#include "git-ws/GitWs/GitWs.h"
+#include "git-ws/GitWs/GitWs.hpp"
 
 int main(int argc, char* argv[])
 {

@@ -37,7 +37,7 @@ namespace gitws
 			inline std::vector<std::string> run(const std::string& mStr) const
 			{
 				std::vector<std::string> result;
-				std::string toRun{"(cd " + path.getStr() + ";" + mStr + ")"}, file;
+				std::string toRun{"2>&1 | (cd " + path.getStr() + " && " + mStr + ")"}, file;
 				FILE* pipe{popen(toRun.c_str(), "r")};
 				char buffer[1000];
 				while(fgets(buffer, sizeof(buffer), pipe) != NULL)
@@ -52,13 +52,13 @@ namespace gitws
 
 			inline void runSMPull() const
 			{
-				run(R"(git submodule update --recursive --remote --init;
-					git submodule foreach git reset --hard;
-					git submodule foreach git checkout origin master;
-					git submodule foreach git rebase origin master;
+				run(R"(git submodule update --recursive --remote --init &&
+					git submodule foreach git reset --hard &&
+					git submodule foreach git checkout origin master &&
+					git submodule foreach git rebase origin master &&
 					git submodule foreach git pull -f origin master --recurse-submodules)");
 			}
-			inline void runSMPush() const { run("git commit -am 'automated submodule update'; git push"); }
+			inline void runSMPush() const { run(R"(git commit -am 'automated submodule update' && git push)"); }
 
 			inline const ssvu::FileSystem::Path& getPath() const	{ return path; }
 			inline const std::string& getBranch() const				{ return branch; }

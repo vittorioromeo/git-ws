@@ -111,7 +111,7 @@ namespace gitws
 		auto& arg(cmd.createArg<string>());
 		arg.setName("Action");
 		arg.setBriefDesc("Action to run for every submodule. Can be 'pull' or 'au'.");
-		arg.setDesc("'pull' recursively pulls the latest submodules from the remote, discarding any change.\n'au' calls 'pull' then pushes in succession.");
+		arg.setDesc("'push' recursively pushes all submodules to the remote\n'pull' recursively pulls the latest submodules from the remote, discarding any change.\n'au' calls 'pull' then pushes in succession.");
 
 		auto& flagAll(cmd.createFlag("a", "all"));
 		flagAll.setBriefDesc("Run the command in all repos?");
@@ -121,7 +121,7 @@ namespace gitws
 			auto currentRepos(flagAll ? repos : getBehindSMRepos());
 
 			if(arg.get() == "pull" || arg.get() == "au") for(const auto& r : currentRepos) r.runSMPull();
-			if(arg.get() == "au") for(const auto& r : currentRepos) r.runSMPush();
+			if(arg.get() == "push" || arg.get() == "au") for(const auto& r : currentRepos) r.runSMPush();
 		};
 	}
 	void GitWs::initCmdStatus()
@@ -206,5 +206,4 @@ namespace gitws
 			for(auto& f : futures) cout << f.get() << endl;
 		};
 	}
-
 }

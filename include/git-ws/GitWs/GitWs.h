@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include <SSVUtils/CommandLine/CommandLine.h>
-#include <SSVUtils/FileSystem/FileSystem.h>
+#include <SSVUtils/CommandLine/CommandLine.hpp>
+#include <SSVUtils/FileSystem/FileSystem.hpp>
 
 namespace gitws
 {

@@ -19,7 +19,7 @@ namespace gitws
 			enum class Status{None, CanCommit, DirtySM};
 
 		private:
-			ssvu::FileSystem::Path path;
+			ssvufs::Path path;
 			std::string branch;
 
 			inline std::string runGetBranch() const							{ return run("git rev-parse --abbrev-ref HEAD")[0]; }
@@ -32,7 +32,7 @@ namespace gitws
 			}
 
 		public:
-			Repo(const ssvu::FileSystem::Path& mPath) : path{mPath}, branch{runGetBranch()} { }
+			Repo(const ssvufs::Path& mPath) : path{mPath}, branch{runGetBranch()} { }
 
 			inline std::vector<std::string> run(const std::string& mStr) const
 			{
@@ -60,7 +60,7 @@ namespace gitws
 			}
 			inline void runSMPush() const { run(R"(git commit -am 'automated submodule update' && git push)"); }
 
-			inline const ssvu::FileSystem::Path& getPath() const	{ return path; }
+			inline const ssvufs::Path& getPath() const	{ return path; }
 			inline const std::string& getBranch() const				{ return branch; }
 
 			inline bool canPush() const { return std::stoi(runRevList(branch)) > 0; }
@@ -109,7 +109,7 @@ namespace gitws
 			void initCmdDo();
 			void initCmdQuery();
 
-			inline void initRepoDatas()	{ for(auto& p : ssvu::FileSystem::getScan<ssvu::FileSystem::Mode::Single, ssvu::FileSystem::Type::Folder>("./")) if(ssvu::FileSystem::exists(p + "/.git/")) repos.emplace_back(p); }
+			inline void initRepoDatas()	{ for(auto& p : ssvufs::getScan<ssvufs::Mode::Single, ssvufs::Type::Folder>("./")) if(ssvufs::exists(p + "/.git/")) repos.emplace_back(p); }
 			inline void initCmds()		{ initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
 		public:

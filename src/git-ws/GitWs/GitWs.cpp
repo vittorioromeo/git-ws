@@ -25,7 +25,7 @@ namespace gitws
 			if(files.empty() && !mPrintEmpty) continue;
 
 			lo(r.getPath()) << endl;
-			for(auto& f : files) lo << ">" << f << "\n";
+			for(auto& f : files) lo() << ">" << f << "\n";
 			lo("----") << "\n\n";
 		}
 	}
@@ -48,12 +48,12 @@ namespace gitws
 			if(!optArg)
 			{
 				lo("git-ws help") << "\n\n";
-				for(const auto& c : cmdLine.getCmds()) lo << getBriefHelp(*c) << "\n" << (flagVerbose ? c->getHelpStr() : "");
+				for(const auto& c : cmdLine.getCmds()) lo() << getBriefHelp(*c) << "\n" << (flagVerbose ? c->getHelpStr() : "");
 			}
 
 			auto& c(cmdLine.findCmd(optArg.get()));
-			lo << "\n" << getBriefHelp(c) << "\n" << c.getHelpStr();
-			lo.flush();
+			lo() << "\n" << getBriefHelp(c) << "\n" << c.getHelpStr();
+			lo().flush();
 		};
 	}
 	void GitWs::initCmdPush()
@@ -166,7 +166,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			if(flagChanged && flagAhead) { lo << "-c and -a are mutually exclusive" << endl; return; }
+			if(flagChanged && flagAhead) { lo() << "-c and -a are mutually exclusive" << endl; return; }
 
 			auto currentRepos(flagChanged ? getChangedRepos(true) : repos);
 			if(flagAhead) currentRepos = getAheadRepos();

@@ -43,7 +43,7 @@ namespace gitws
 				while(fgets(buffer, sizeof(buffer), pipe) != NULL)
 				{
 					file = buffer;
-					result.push_back(file.substr(0, file.size() - 1));
+					result.emplace_back(file.substr(0, file.size() - 1));
 				}
 				pclose(pipe);
 
@@ -91,12 +91,12 @@ namespace gitws
 				for(const auto& rd : repos)
 				{
 					const auto& cs(rd.getStatus(false));
-					if((rd.getSubmodulesBehind() || cs == Repo::Status::DirtySM) && cs != Repo::Status::CanCommit && !rd.canPush()) result.push_back(rd);
+					if((rd.getSubmodulesBehind() || cs == Repo::Status::DirtySM) && cs != Repo::Status::CanCommit && !rd.canPush()) result.emplace_back(rd);
 				}
 				return result;
 			}
-			inline std::vector<Repo> getChangedRepos(bool mIgnoreSubmodules) const	{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.getStatus(mIgnoreSubmodules) == Repo::Status::CanCommit) result.push_back(rd); return result; }
-			inline std::vector<Repo> getAheadRepos() const		{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.canPush()) result.push_back(rd); return result; }
+			inline std::vector<Repo> getChangedRepos(bool mIgnoreSubmodules) const	{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.getStatus(mIgnoreSubmodules) == Repo::Status::CanCommit) result.emplace_back(rd); return result; }
+			inline std::vector<Repo> getAheadRepos() const		{ std::vector<Repo> result; for(const auto& rd : repos) if(rd.canPush()) result.emplace_back(rd); return result; }
 
 			void runInRepos(const std::vector<Repo>& mRepos, const std::string& mCommand, bool mPrintEmpty = false);
 

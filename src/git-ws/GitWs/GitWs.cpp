@@ -200,7 +200,7 @@ namespace gitws
 					return s.str();
 				}));
 
-				futures.push_back(move(f));
+				futures.emplace_back(move(f));
 			}
 
 			for(auto& f : futures) cout << f.get() << endl;

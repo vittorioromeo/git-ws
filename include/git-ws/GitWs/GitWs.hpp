@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <SSVUtils/SSVUtils.hpp>
 #include <SSVUtils/CommandLine/CommandLine.hpp>
 #include <SSVUtils/FileSystem/FileSystem.hpp>
 

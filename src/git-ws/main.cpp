@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include <SSVUtils/Log/Log.hpp>
+#include <SSVUtils/SSVUtils.hpp>
 #include "git-ws/GitWs/GitWs.hpp"
 
 int main(int argc, char* argv[])

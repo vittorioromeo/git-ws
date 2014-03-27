@@ -24,9 +24,10 @@ namespace gitws
 			vector<string> files{r.run(mCommand)};
 			if(files.empty() && !mPrintEmpty) continue;
 
-			lo(r.getPath()) << "\n";
-			for(auto& f : files) lo() << ">" << f << "\n";
-			lo("----") << "\n\n";
+			lo(r.getPath()) << "\n|\n";
+			for(auto& f : files) lo() << "| -> " << f << "\n";
+			lo() << "|" << "\n";
+			lo("------------") << "\n\n";
 		}
 	}
 

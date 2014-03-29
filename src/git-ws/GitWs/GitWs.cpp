@@ -26,8 +26,8 @@ namespace gitws
 
 			lo(r.getPath()) << "\n|\n";
 			for(auto& f : files) lo() << "| -> " << f << "\n";
-			lo() << "|" << "\n";
-			lo("------------") << "\n\n";
+			lo() << "|\nL____________\n\n";
+
 		}
 	}
 

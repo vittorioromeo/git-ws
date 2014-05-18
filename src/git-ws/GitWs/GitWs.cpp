@@ -2,9 +2,6 @@
 // License: Academic Free License ("AFL") v. 3.0
 // AFL License page: http://opensource.org/licenses/AFL-3.0
 
-#include <cstdio>
-#include <iostream>
-#include <iomanip>
 #include <future>
 #include "git-ws/GitWs/GitWs.hpp"
 
@@ -27,7 +24,6 @@ namespace gitws
 			lo(r.getPath()) << "\n|\n";
 			for(auto& f : files) lo() << "| -> " << f << "\n";
 			lo() << "|\nL" << hr(-1) << "\n\n";
-
 		}
 	}
 

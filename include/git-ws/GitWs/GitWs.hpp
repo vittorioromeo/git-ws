@@ -5,10 +5,8 @@
 #ifndef GITWS_GITWS
 #define GITWS_GITWS
 
-#include <string>
-#include <vector>
-#include <functional>
-#include <SSVUtils/SSVUtils.hpp>
+#include <SSVUtils/Core/Core.hpp>
+#include <SSVUtils/CommandLine/CommandLine.hpp>
 
 namespace gitws
 {

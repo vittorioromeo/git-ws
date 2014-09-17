@@ -175,32 +175,34 @@ namespace gitws
 	{
 		auto& cmd(cmdLine.create({"query"}));
 		cmd.setDesc("Queries the status of all the repos, returning whether they are changed or ahead.");
+
+		auto& flagDisplayAll(cmd.createFlag("a", "display-all"));
+		flagDisplayAll.setBriefDesc("Display status of all repositories, even the ones without changes.");
+
+		auto& flagCheckSubmodules(cmd.createFlag("s", "check-submodules"));
+		flagCheckSubmodules.setBriefDesc("Check if submodules are outdated or dirty. (Very time consuming)");
+
 		cmd += [&]
 		{
-			vector<future<string>> futures;
-
 			for(const auto& rd : repos)
 			{
-				auto f(async(launch::async, [&]
+				bool foundAnything{false};
+
+				ostringstream s;
+				s << setw(25) << left << rd.getPath() << setw(15) << " ~ " + rd.getBranch() << flush;
+
 				{
-					ostringstream s;
-					s << setw(25) << left << rd.getPath() << setw(15) << " ~ " + rd.getBranch() << flush;
+					if(rd.getStatus(true) == Repo::Status::CanCommit)	{ s << setw(15) << left << " (can commit)"; foundAnything = true; }
+					if(rd.canPush())									{ s << setw(15) << left << " (can push)"; foundAnything = true; }
+					if(rd.canPull())									{ s << setw(15) << left << " (can pull)"; foundAnything = true; }
 
-					{
-						auto a0 = async(launch::async, [&]{ if(rd.getStatus(true) == Repo::Status::CanCommit)	s << setw(15) << left << "(can commit)" << flush; });
-						auto a1 = async(launch::async, [&]{ if(rd.canPush())									s << setw(15) << left << "(can push)" << flush; });
-						auto a2 = async(launch::async, [&]{ if(rd.getStatus(false) == Repo::Status::DirtySM)	s << setw(15) << left << "(dirty submodules)" << flush; });
-						auto a3 = async(launch::async, [&]{ if(rd.canPull())									s << setw(15) << left << "(can pull)" << flush; });
-						auto a4 = async(launch::async, [&]{ if(rd.getSubmodulesBehind())						s << setw(15) << left << "(outdated submodules)"; });
-					}
+					if(!flagCheckSubmodules) continue;
+					if(rd.getStatus(false) == Repo::Status::DirtySM)	{ s << setw(15) << left << " (dirty submodules)"; foundAnything = true; }
+					if(rd.getSubmodulesBehind())						{ s << setw(15) << left << " (outdated submodules)"; foundAnything = true; }
+				}
 
-					return s.str();
-				}));
-
-				futures.emplace_back(move(f));
+				if(foundAnything || flagDisplayAll) cout << s.str() << "\n";
 			}
-
-			for(auto& f : futures) cout << f.get() << endl;
 		};
 	}
 }

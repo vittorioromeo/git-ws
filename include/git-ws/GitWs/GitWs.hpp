@@ -107,7 +107,7 @@ namespace gitws
 			void initCmdDo();
 			void initCmdQuery();
 
-			inline void initRepoDatas()	{ for(auto& p : ssvufs::getScan<ssvufs::Mode::Single, ssvufs::Type::Folder>("./")) if(ssvufs::exists(p + "/.git/")) repos.emplace_back(p); }
+			inline void initRepoDatas()	{ for(auto& p : ssvufs::getScan<ssvufs::Mode::Single, ssvufs::Type::Folder>("./")) if(ssvufs::Path{p + "/.git/"}.exists<ssvufs::Type::Folder>()) repos.emplace_back(p); }
 			inline void initCmds()		{ initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
 		public:

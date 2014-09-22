@@ -163,7 +163,7 @@ namespace gitws
 
 		cmd += [&]
 		{
-			if(flagChanged && flagAhead) { lo() << "-c and -a are mutually exclusive" << endl; return; }
+			if(flagChanged && flagAhead) { lo() << "-c and -a are mutually exclusive" << "\n"; return; }
 
 			auto currentRepos(flagChanged ? getChangedRepos(true) : repos);
 			if(flagAhead) currentRepos = getAheadRepos();

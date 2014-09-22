@@ -42,7 +42,7 @@ namespace gitws
 			inline auto runGetFetchSM() const							{ return run("git submodule foreach git fetch --dry-run 2>&1"); }
 			inline bool runHasDiffIndex(bool mIgnoreSubmodules = false) const
 			{
-				return run(std::string{"git diff-index --name-only"} + (mIgnoreSubmodules ? " --ignore-submodules" : "")  + " HEAD --").empty();
+				return run("git diff-index --name-only"s + (mIgnoreSubmodules ? " --ignore-submodules" : "")  + " HEAD --").empty();
 			}
 
 		public:

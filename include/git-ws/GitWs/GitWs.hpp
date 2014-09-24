@@ -81,7 +81,7 @@ namespace gitws
 	{
 		private:
 			std::vector<Repo> repos;
-			ssvu::CmdLine::Ctx ctx;
+			ssvucl::Ctx ctx;
 
 			inline auto getBehindSMRepos() const
 			{

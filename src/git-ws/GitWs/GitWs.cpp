@@ -46,10 +46,14 @@ namespace gitws
 			{
 				lo("git-ws help") << "\n\n";
 				for(const auto& c : ctx.getCmds()) lo() << getBriefHelp(*c) << "\n" << (flagVerbose ? c->getHelpStr() : "");
+				lo() << "\n";
+			}
+			else
+			{
+				auto& c(ctx.findCmd(argOpt.get()));
+				lo() << "\n" << getBriefHelp(c) << "\n" << c.getHelpStr();
 			}
 
-			auto& c(ctx.findCmd(argOpt.get()));
-			lo() << "\n" << getBriefHelp(c) << "\n" << c.getHelpStr();
 			lo().flush();
 		};
 	}

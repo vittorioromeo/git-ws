@@ -6,7 +6,6 @@
 
 int main(int argc, char* argv[])
 {
-	std::vector<std::string> args; for(int i{1}; i < argc; ++i) args.emplace_back(argv[i]);
-	try { gitws::GitWs{args}; } catch(std::runtime_error mException) { ssvu::lo() << mException.what() << std::endl; return 1; }
+	try { gitws::GitWs{argc, argv}; } catch(const std::runtime_error& mEx) { ssvu::lo() << mEx.what() << std::endl; return 1; }
 	ssvu::saveLogToFile("log.txt"); return 0;
 }

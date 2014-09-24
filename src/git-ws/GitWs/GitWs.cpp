@@ -8,11 +8,11 @@
 using namespace std;
 using namespace ssvu;
 using namespace ssvu::FileSystem;
-using namespace ssvu::CommandLine;
+using namespace ssvu::CmdLine;
 
 namespace gitws
 {
-	string getBriefHelp(const Cmd& mCmd) { return mCmd.getNamesStr() + " " + mCmd.getArgsStr() + " " + mCmd.getOptArgsStr() + " " + mCmd.getFlagsStr() + " " + mCmd.getArgPacksStr(); }
+	string getBriefHelp(const Cmd& mCmd) { return mCmd.getNamesStr() + " " + mCmd.getArgsStr() + " " + mCmd.getArgsOptStr() + " " + mCmd.getFlagsStr() + " " + mCmd.getArgPacksStr(); }
 
 	void GitWs::runInRepos(const vector<Repo>& mRepos, const string& mCommand, bool mPrintEmpty)
 	{
@@ -29,33 +29,33 @@ namespace gitws
 
 	void GitWs::initCmdHelp()
 	{
-		auto& cmd(cmdLine.create({"?", "help"}));
+		auto& cmd(ctx.create({"?", "help"}));
 		cmd.setDesc("Show help for all commands or a single command.");
 
-		auto& optArg(cmd.createOptArg<string>(""));
-		optArg.setName("Command name");
-		optArg.setBriefDesc("Name of the command to get help for.");
-		optArg.setDesc("Leave blank to get general help.");
+		auto& argOpt(cmd.createArgOpt<string>(""));
+		argOpt.setName("Command name");
+		argOpt.setBriefDesc("Name of the command to get help for.");
+		argOpt.setDesc("Leave blank to get general help.");
 
 		auto& flagVerbose(cmd.createFlag("v", "verbose"));
 		flagVerbose.setBriefDesc("Verbose general help?");
 
 		cmd += [&]
 		{
-			if(!optArg)
+			if(!argOpt)
 			{
 				lo("git-ws help") << "\n\n";
-				for(const auto& c : cmdLine.getCmds()) lo() << getBriefHelp(*c) << "\n" << (flagVerbose ? c->getHelpStr() : "");
+				for(const auto& c : ctx.getCmds()) lo() << getBriefHelp(*c) << "\n" << (flagVerbose ? c->getHelpStr() : "");
 			}
 
-			auto& c(cmdLine.findCmd(optArg.get()));
+			auto& c(ctx.findCmd(argOpt.get()));
 			lo() << "\n" << getBriefHelp(c) << "\n" << c.getHelpStr();
 			lo().flush();
 		};
 	}
 	void GitWs::initCmdPush()
 	{
-		auto& cmd(cmdLine.create({"push"}));
+		auto& cmd(ctx.create({"push"}));
 		cmd.setDesc("Pushes every git repo.");
 
 		auto& flagForce(cmd.createFlag("f", "force"));
@@ -80,7 +80,7 @@ namespace gitws
 	}
 	void GitWs::initCmdPull()
 	{
-		auto& cmd(cmdLine.create({"pull"}));
+		auto& cmd(ctx.create({"pull"}));
 		cmd.setDesc("Pulls every git repo.");
 
 		auto& flagStash(cmd.createFlag("s", "stash"));
@@ -102,7 +102,7 @@ namespace gitws
 	}
 	void GitWs::initCmdSubmodule()
 	{
-		auto& cmd(cmdLine.create({"sub", "submodule"}));
+		auto& cmd(ctx.create({"sub", "submodule"}));
 		cmd.setDesc("Work with git submodules in every repo with dirty submodules.");
 
 		auto& arg(cmd.createArg<string>());
@@ -123,7 +123,7 @@ namespace gitws
 	}
 	void GitWs::initCmdStatus()
 	{
-		auto& cmd(cmdLine.create({"st", "status"}));
+		auto& cmd(ctx.create({"st", "status"}));
 		cmd.setDesc("Prints the status of all repos.");
 
 		auto& showAllFlag(cmd.createFlag("a", "all"));
@@ -133,7 +133,7 @@ namespace gitws
 	}
 	void GitWs::initCmdGitg()
 	{
-		auto& cmd(cmdLine.create({"gitg"}));
+		auto& cmd(ctx.create({"gitg"}));
 		cmd.setDesc("Open the gitg gui application in every repo folder.");
 
 		auto& flagAll(cmd.createFlag("a", "all"));
@@ -147,7 +147,7 @@ namespace gitws
 	}
 	void GitWs::initCmdDo()
 	{
-		auto& cmd(cmdLine.create({"do"}));
+		auto& cmd(ctx.create({"do"}));
 		cmd.setDesc("Runs a shell command in every repo folder.");
 
 		auto& arg(cmd.createArg<string>());
@@ -173,7 +173,7 @@ namespace gitws
 	}
 	void GitWs::initCmdQuery()
 	{
-		auto& cmd(cmdLine.create({"query"}));
+		auto& cmd(ctx.create({"query"}));
 		cmd.setDesc("Queries the status of all the repos, returning whether they are changed or ahead.");
 
 		auto& flagDisplayAll(cmd.createFlag("a", "display-all"));

@@ -6,7 +6,7 @@
 #define GITWS_GITWS
 
 #include <SSVUtils/Core/Core.hpp>
-#include <SSVUtils/CommandLine/CommandLine.hpp>
+#include <SSVUtils/CmdLine/CmdLine.hpp>
 
 namespace gitws
 {
@@ -81,7 +81,7 @@ namespace gitws
 	{
 		private:
 			std::vector<Repo> repos;
-			ssvu::CommandLine::CmdLine cmdLine;
+			ssvu::CmdLine::Ctx ctx;
 
 			inline auto getBehindSMRepos() const
 			{
@@ -111,7 +111,7 @@ namespace gitws
 			inline void initCmds()		{ initCmdHelp(); initCmdPush(); initCmdPull(); initCmdSubmodule(); initCmdStatus(); initCmdGitg(); initCmdDo(); initCmdQuery(); }
 
 		public:
-			inline GitWs(const std::vector<std::string>& mCommandLine) { initRepoDatas(); initCmds(); cmdLine.parseCmdLine(mCommandLine); }
+			inline GitWs(int mArgCount, char* mArgValues[]) { initRepoDatas(); initCmds(); ctx.process(mArgCount, mArgValues); }
 	};
 }
 

@@ -25,6 +25,5 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	ssvu::saveLogToFile("log.txt");
 	return 0;
 }

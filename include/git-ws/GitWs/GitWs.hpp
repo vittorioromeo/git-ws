@@ -61,7 +61,7 @@ namespace gitws
 			inline const auto& getPath() const		{ return path; }
 			inline const auto& getBranch() const	{ return branch; }
 
-			inline bool canPush() const { return std::stoi(runRevList(branch)) > 0; }
+			inline bool canPush() const { return ssvu::sToInt(runRevList(branch)) > 0; }
 			inline bool canPull() const { return !runGetFetch().empty(); }
 			inline bool canCommit() const { return !runHasDiffIndex(true); }
 			inline auto getStatus(bool mIgnoreSubmodules) const

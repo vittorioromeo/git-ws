@@ -6,24 +6,24 @@
 
 int main(int argc, char* argv[])
 {
-	try
-	{
-		gitws::GitWs{argc, argv};
-	}
-	catch(const ssvucl::Exception::Base& mEx)
-	{
-		ssvu::lo(mEx.getTitle()) << mEx.what() << std::endl;
-		return 1;
-	}
-	catch(const std::runtime_error& mEx)
-	{
-		ssvu::lo("Runtime error") << mEx.what() << std::endl;
-		return 1;
-	}
-	catch(...)
-	{
-		return 1;
-	}
+    try
+    {
+        gitws::GitWs{argc, argv};
+    }
+    catch(const ssvucl::Exception::Base& mEx)
+    {
+        ssvu::lo(mEx.getTitle()) << mEx.what() << std::endl;
+        return 1;
+    }
+    catch(const std::runtime_error& mEx)
+    {
+        ssvu::lo("Runtime error") << mEx.what() << std::endl;
+        return 1;
+    }
+    catch(...)
+    {
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }

@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
-# Include SSVCmake.
+# Include `vrm_cmake`.
 list(APPEND CMAKE_MODULE_PATH
-    "${CMAKE_SOURCE_DIR}/../SSVCMake/cmake/modules/"
-    "${CMAKE_SOURCE_DIR}/extlibs/SSVCMake/cmake/modules/")
+    "${CMAKE_SOURCE_DIR}/../vrm_cmake/cmake/"
+    "${CMAKE_SOURCE_DIR}/extlibs/vrm_cmake/cmake/")
 
-include(SSVCMake)
+include(vrm_cmake)
 
 # Basic project setup.
 vrm_cmake_init_project(git-ws)
@@ -20,7 +20,7 @@ set(INC_DIR "include")
 set(SRC_DIR "src")
 include_directories("./")
 include_directories("./${INC_DIR}")
-SSVCMake_setDefaultGlobs()
+file(GLOB_RECURSE SRC_LIST "${INC_DIR}/*" "${SRC_DIR}/*")
 
 # Install.
 add_executable(${PROJECT_NAME} ${SRC_LIST})

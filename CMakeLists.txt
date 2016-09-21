@@ -19,6 +19,7 @@ vrm_cmake_add_common_compiler_flags()
 set(INC_DIR "include")
 set(SRC_DIR "src")
 include_directories("./")
+# include_directories("../mingw-std-threads/")
 include_directories("./${INC_DIR}")
 file(GLOB_RECURSE SRC_LIST "${INC_DIR}/*" "${SRC_DIR}/*")
 

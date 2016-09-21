@@ -5,6 +5,18 @@
 #ifndef GITWS_GITWS
 #define GITWS_GITWS
 
+#ifdef GITWS_USE_MEGANZ_MINGW
+
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+#include <mingw.thread.h>
+#include <mingw.mutex.h>
+#include <mingw.condition_variable.h>
+
+#endif
+
 #include <SSVUtils/Core/Core.hpp>
 #include <SSVUtils/CmdLine/CmdLine.hpp>
 

@@ -40,7 +40,7 @@ namespace gitws
                 file;
             FILE* pipe{popen(toRun.c_str(), "r")};
             char buffer[1000];
-            while(fgets(buffer, sizeof(buffer), pipe) != NULL)
+            while(fgets(buffer, sizeof(buffer), pipe) != nullptr)
             {
                 file = buffer;
                 result.emplace_back(file.substr(0, file.size() - 1));
